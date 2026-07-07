@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/composeButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/inbox_compose" />
+        <Button android:id="@+id/refreshButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/inbox_refresh" />
+        <Button android:id="@+id/keysButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/inbox_keys" />
+        <Button android:id="@+id/accountButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/inbox_account" />
+    </LinearLayout>
+
+    <TextView android:id="@+id/inboxStatus"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="8dp" android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/messageList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

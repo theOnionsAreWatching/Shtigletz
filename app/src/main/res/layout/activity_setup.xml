@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/setup_title"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <EditText android:id="@+id/displayName"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/hint_display_name" android:inputType="textPersonName" />
+
+        <EditText android:id="@+id/email"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/hint_email" android:inputType="textEmailAddress" />
+
+        <EditText android:id="@+id/password"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/hint_password" android:inputType="textPassword" />
+
+        <EditText android:id="@+id/imapHost"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/hint_imap_host" android:inputType="textUri" />
+
+        <EditText android:id="@+id/imapPort"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/hint_imap_port" android:inputType="number" android:text="993" />
+
+        <Spinner android:id="@+id/imapSecurity"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <EditText android:id="@+id/smtpHost"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/hint_smtp_host" android:inputType="textUri" />
+
+        <EditText android:id="@+id/smtpPort"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="@string/hint_smtp_port" android:inputType="number" android:text="465" />
+
+        <Spinner android:id="@+id/smtpSecurity"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <Button android:id="@+id/saveButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/setup_save" />
+
+        <TextView android:id="@+id/setupStatus"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:visibility="gone" android:paddingTop="8dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/setup_note"
+            android:textSize="12sp" android:paddingTop="12dp" android:alpha="0.7" />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,13 @@
+{
+  "name": "standard-default",
+  "mappings": [
+    {"keyCode": 19, "scanCode": 0, "action": "UP"},
+    {"keyCode": 20, "scanCode": 0, "action": "DOWN"},
+    {"keyCode": 21, "scanCode": 0, "action": "LEFT"},
+    {"keyCode": 22, "scanCode": 0, "action": "RIGHT"},
+    {"keyCode": 23, "scanCode": 0, "action": "SELECT"},
+    {"keyCode": 66, "scanCode": 0, "action": "SELECT"},
+    {"keyCode": 4,  "scanCode": 0, "action": "BACK"},
+    {"keyCode": 82, "scanCode": 0, "action": "MENU"}
+  ]
+}
