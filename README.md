@@ -18,7 +18,7 @@ sideloading — no Play Store, no Google services required.
 The enforcement lives in two files — `mail/BodyExtractor.kt` and
 `ui/SafeWebView.kt`. **Do not weaken them.** Everything else can change.
 
-## Features (v0.2)
+## Features (v0.3)
 
 - **Multiple accounts.** Add as many IMAP/SMTP accounts as you like. With
   more than one account, the app opens to an account picker showing each
@@ -43,10 +43,20 @@ The enforcement lives in two files — `mail/BodyExtractor.kt` and
   dpad) for: mark read/unread, star/unstar, reply, forward, move to
   folder…, move to Trash, delete permanently. Long-press an account to edit
   or remove it.
-- **Settings.** Page size (25–200), in-app auto refresh (off–30 min), link
-  display mode, and how many newest messages to save for offline (off–50).
+- **Settings.** Theme, text size, sort order, page size (25–200), in-app
+  auto refresh (off–30 min), link display mode, and how many newest messages
+  to save for offline (off–50).
   Offline prefetch uses IMAP PEEK, so saving a message does **not** mark it
   read.
+- **Material 3 UI**, light/dark/system theme, no wasted title bar. Dpad focus
+  is always visible: focused rows get a rounded accent outline, focused
+  buttons get an accent stroke.
+- **Provider presets.** Add account → pick Gmail, Outlook/Hotmail/Office 365,
+  Yahoo, iCloud, or AOL and only display name, email, and app password are
+  asked; servers are filled in automatically (with per-provider app-password
+  instructions). "Custom" exposes the full IMAP/SMTP form.
+- **Text size** setting (Small–Huge) scales every screen and message bodies.
+- **Sort** newest-first or unread-first.
 - Reply, forward, compose (plain text only), delete (moves to Trash when the
   server has one, otherwise asks before deleting permanently).
 - Contact photo or monogram avatars from the local address book.
