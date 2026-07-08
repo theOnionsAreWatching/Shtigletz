@@ -13,6 +13,7 @@ import android.os.Build
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import io.github.theonionsarewatching.shtigletz.FlavorConfig
 import io.github.theonionsarewatching.shtigletz.R
 import io.github.theonionsarewatching.shtigletz.Settings
 import io.github.theonionsarewatching.shtigletz.input.SoftKeys
@@ -22,9 +23,11 @@ import io.github.theonionsarewatching.shtigletz.security.AccountStore
 class SettingsActivity : SoftKeyActivity() {
 
     private val pageSizes = listOf(25, 50, 100, 200)
-    private val refreshMinutes = listOf(0, 1, 5, 15, 30)
+    // -1 = refresh on open only when stale (>15 min); 0 = off; 1440 = daily.
+    private val refreshMinutes = listOf(0, -1, 1, 5, 15, 30, 60, 1440)
     private val prefetchCounts = listOf(0, 10, 25, 50)
-    private val textScales = listOf(0.85f, 1f, 1.15f, 1.3f, 1.5f)
+    private val textScales = listOf(0.7f, 0.85f, 1f, 1.15f, 1.3f, 1.5f)
+    private val viewModes = listOf("text", "textimg", "html")
     private val themes = listOf("system", "light", "dark")
     private val softkeyModes = listOf("off", "auto", "custom")
     private val notifyModes = listOf("off", "all", "selected")
@@ -51,6 +54,7 @@ class SettingsActivity : SoftKeyActivity() {
         bindSpinner(
             R.id.textSizeSpinner,
             listOf(
+                getString(R.string.settings_text_xsmall),
                 getString(R.string.settings_text_small),
                 getString(R.string.settings_text_default),
                 getString(R.string.settings_text_large),
@@ -79,7 +83,15 @@ class SettingsActivity : SoftKeyActivity() {
 
         bindSpinner(
             R.id.autoRefreshSpinner,
-            refreshMinutes.map { if (it == 0) getString(R.string.settings_off) else getString(R.string.settings_minutes, it) },
+            refreshMinutes.map {
+                when (it) {
+                    0 -> getString(R.string.settings_off)
+                    -1 -> getString(R.string.settings_refresh_on_open)
+                    1440 -> getString(R.string.settings_refresh_daily)
+                    60 -> getString(R.string.settings_refresh_hourly)
+                    else -> getString(R.string.settings_minutes, it)
+                }
+            },
             refreshMinutes.indexOf(Settings.autoRefreshMinutes(this)).coerceAtLeast(0)
         ) { Settings.setAutoRefreshMinutes(this, refreshMinutes[it]) }
 
@@ -88,6 +100,20 @@ class SettingsActivity : SoftKeyActivity() {
             listOf(getString(R.string.settings_links_show), getString(R.string.settings_links_hide)),
             if (Settings.showLinks(this)) 0 else 1
         ) { Settings.setShowLinks(this, it == 0) }
+
+        if (FlavorConfig.IMAGES) {
+            findViewById<View>(R.id.viewModeLabel).visibility = View.VISIBLE
+            findViewById<View>(R.id.viewModeSpinner).visibility = View.VISIBLE
+            bindSpinner(
+                R.id.viewModeSpinner,
+                listOf(
+                    getString(R.string.view_text),
+                    getString(R.string.view_textimg),
+                    getString(R.string.view_html)
+                ),
+                viewModes.indexOf(Settings.viewMode(this)).coerceAtLeast(0)
+            ) { Settings.setViewMode(this, viewModes[it]) }
+        }
 
         bindSpinner(
             R.id.tapContactsSpinner,

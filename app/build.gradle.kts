@@ -8,12 +8,34 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "io.github.theonionsarewatching.shtigletz"
         // minSdk 23: androidx.security-crypto (encrypted credential storage) requires API 23+.
         minSdk = 23
         targetSdk = 34
-        versionCode = 10
-        versionName = "0.6.4"
+        versionCode = 11
+        versionName = "0.7.0"
+    }
+
+    // Three apps, one codebase. The dial is "how much of the message gets
+    // through": kosher = text only; plus = + attachments; pro = + images.
+    // Each flavor supplies its own FlavorConfig.kt (src/<flavor>/java/...)
+    // and its own applicationId so all three install side by side.
+    flavorDimensions += "policy"
+    productFlavors {
+        create("kosher") {
+            dimension = "policy"
+            applicationId = "io.github.theonionsarewatching.shtigletz"
+            resValue("string", "app_name", "D-Mail Kosher")
+        }
+        create("plus") {
+            dimension = "policy"
+            applicationId = "io.github.theonionsarewatching.honeymustard"
+            resValue("string", "app_name", "D-Mail Plus")
+        }
+        create("pro") {
+            dimension = "policy"
+            applicationId = "io.github.theonionsarewatching.onegshabbos"
+            resValue("string", "app_name", "D-Mail Pro")
+        }
     }
 
     // Release signing is injected by CI (see .github/workflows/build.yml).

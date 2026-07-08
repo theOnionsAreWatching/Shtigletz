@@ -35,9 +35,24 @@
             android:gravity="top"
             android:minLines="8" />
 
-        <Button android:id="@+id/sendButton" style="@style/DMail.Button"
+        <TextView android:id="@+id/attachedLabel"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/compose_send" />
+            android:textSize="12sp"
+            android:focusable="true" android:clickable="true"
+            android:background="@drawable/focus_bg" android:padding="6dp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginTop="8dp">
+            <Button android:id="@+id/attachButton" style="@style/DMail.Button"
+                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:layout_marginEnd="4dp" android:visibility="gone"
+                android:text="@string/compose_attach" />
+            <Button android:id="@+id/sendButton" style="@style/DMail.Button"
+                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2"
+                android:layout_marginStart="4dp"
+                android:text="@string/compose_send" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

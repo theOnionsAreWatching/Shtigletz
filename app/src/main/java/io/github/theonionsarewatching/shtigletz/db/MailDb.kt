@@ -18,7 +18,7 @@ import io.github.theonionsarewatching.shtigletz.mail.ImapService
  * end up in this cache.
  */
 class MailDb private constructor(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "dmail.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "dmail.db", null, 2) {
 
     data class CachedMessage(
         val accountId: String,
@@ -34,7 +34,9 @@ class MailDb private constructor(context: Context) :
         val bodyPlain: String?,
         val bodyHtml: String?,
         val blockedParts: Int,
-        val bodyFetched: Boolean
+        val bodyFetched: Boolean,
+        /** JSON array [{"i":..,"n":..,"m":..,"s":..}] of attachment metadata. */
+        val attachmentsJson: String?
     )
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -54,13 +56,16 @@ class MailDb private constructor(context: Context) :
                 bodyHtml TEXT,
                 blockedParts INTEGER NOT NULL DEFAULT 0,
                 bodyFetched INTEGER NOT NULL DEFAULT 0,
+                attachmentsJson TEXT,
                 PRIMARY KEY(accountId, folder, uid))"""
         )
         db.execSQL("CREATE INDEX idx_messages_list ON messages(accountId, folder, dateMillis DESC)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // v1 — nothing to migrate yet.
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE messages ADD COLUMN attachmentsJson TEXT")
+        }
     }
 
     /** Upsert envelope fields, preserving any cached body. */
@@ -88,12 +93,16 @@ class MailDb private constructor(context: Context) :
         }
     }
 
-    fun saveBody(accountId: String, folder: String, uid: Long, plain: String?, html: String?, blockedParts: Int) {
+    fun saveBody(
+        accountId: String, folder: String, uid: Long,
+        plain: String?, html: String?, blockedParts: Int, attachmentsJson: String?
+    ) {
         val cv = ContentValues().apply {
             put("bodyPlain", plain)
             put("bodyHtml", html)
             put("blockedParts", blockedParts)
             put("bodyFetched", 1)
+            put("attachmentsJson", attachmentsJson)
         }
         writableDatabase.update(
             "messages", cv,
@@ -173,7 +182,8 @@ class MailDb private constructor(context: Context) :
         bodyPlain = c.getString(c.getColumnIndexOrThrow("bodyPlain")),
         bodyHtml = c.getString(c.getColumnIndexOrThrow("bodyHtml")),
         blockedParts = c.getInt(c.getColumnIndexOrThrow("blockedParts")),
-        bodyFetched = c.getInt(c.getColumnIndexOrThrow("bodyFetched")) == 1
+        bodyFetched = c.getInt(c.getColumnIndexOrThrow("bodyFetched")) == 1,
+        attachmentsJson = c.getString(c.getColumnIndexOrThrow("attachmentsJson"))
     )
 
     companion object {

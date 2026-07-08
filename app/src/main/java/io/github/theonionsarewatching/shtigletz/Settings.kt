@@ -31,6 +31,16 @@ object Settings {
     fun sortUnreadFirst(ctx: Context): Boolean = p(ctx).getBoolean("sortUnreadFirst", false)
     fun setSortUnreadFirst(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("sortUnreadFirst", v).apply()
 
+    /** Pro default message view: "text" | "textimg" | "html". */
+    fun viewMode(ctx: Context): String = p(ctx).getString("viewMode", "textimg") ?: "textimg"
+    fun setViewMode(ctx: Context, v: String) = p(ctx).edit().putString("viewMode", v).apply()
+
+    /** Per account+folder timestamp of the last successful refresh. */
+    fun lastRefresh(ctx: Context, accountId: String, folder: String): Long =
+        p(ctx).getLong("lastRefresh_${accountId}_$folder", 0L)
+    fun setLastRefresh(ctx: Context, accountId: String, folder: String) =
+        p(ctx).edit().putLong("lastRefresh_${accountId}_$folder", System.currentTimeMillis()).apply()
+
     /** true = email addresses & phone numbers in messages are tappable (copy dialog). */
     fun tapContacts(ctx: Context): Boolean = p(ctx).getBoolean("tapContacts", true)
     fun setTapContacts(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("tapContacts", v).apply()

@@ -25,7 +25,6 @@ class MessageAdapter(
 ) : RecyclerView.Adapter<MessageAdapter.Holder>() {
 
     private val items = ArrayList<MailDb.CachedMessage>()
-    private val dateFmt = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
 
     fun submit(list: List<MailDb.CachedMessage>) {
         items.clear()
@@ -56,11 +55,24 @@ class MessageAdapter(
 
     override fun getItemCount(): Int = items.size
 
+    /** Follows the system 12/24-hour setting; shows the year once a message
+     *  is more than a year old (and drops the time, which no longer matters). */
+    private fun formatDate(context: android.content.Context, millis: Long): String {
+        if (millis <= 0) return ""
+        val overAYear = System.currentTimeMillis() - millis > 365L * 24 * 60 * 60 * 1000
+        val pattern = when {
+            overAYear -> "MMM d, yyyy"
+            android.text.format.DateFormat.is24HourFormat(context) -> "MMM d, HH:mm"
+            else -> "MMM d, h:mm a"
+        }
+        return SimpleDateFormat(pattern, Locale.getDefault()).format(Date(millis))
+    }
+
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val e = items[position]
         holder.from.text = e.fromName
         holder.subject.text = e.subject
-        holder.date.text = if (e.dateMillis > 0) dateFmt.format(Date(e.dateMillis)) else ""
+        holder.date.text = formatDate(holder.itemView.context, e.dateMillis)
 
         // Unread must be unmistakable: dot + bold + full brightness.
         // Read rows are clearly dimmed.

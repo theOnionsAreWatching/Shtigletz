@@ -183,6 +183,29 @@ class ImapService(
         true
     }
 
+    /** Download one attachment part to [dest]. Plus/Pro only. */
+    fun fetchAttachmentTo(uid: Long, index: Int, dest: java.io.File): Boolean =
+        withFolder { folder ->
+            val m = folder.getMessageByUID(uid) ?: return@withFolder false
+            val part = BodyExtractor.findBlockedPart(m, index) ?: return@withFolder false
+            dest.parentFile?.mkdirs()
+            part.inputStream.use { input ->
+                dest.outputStream().use { output -> input.copyTo(output) }
+            }
+            true
+        }
+
+    /** Bytes + mime of an embedded cid: image. Pro only. */
+    fun fetchEmbeddedByCid(uid: Long, cid: String, maxBytes: Int = 3_000_000): Pair<ByteArray, String>? =
+        withFolder { folder ->
+            val m = folder.getMessageByUID(uid) ?: return@withFolder null
+            val part = BodyExtractor.findCidPart(m, cid) ?: return@withFolder null
+            val mime = runCatching { part.contentType.substringBefore(';').trim().lowercase() }
+                .getOrDefault("image/*")
+            val bytes = part.inputStream.use { it.readBytes() }
+            if (bytes.size > maxBytes) null else bytes to mime
+        }
+
     /** Best-effort Trash folder detection. */
     fun findTrashFolder(): String? {
         val names = runCatching { listFolders() }.getOrDefault(emptyList())

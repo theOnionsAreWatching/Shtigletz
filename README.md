@@ -2,20 +2,55 @@
 
 A kosher-friendly, dpad-navigable email client for Android.
 
-## Kosher Features
+## Three apps
 
-1. **Attachments are never downloaded.** The IMAP layer fetches only
-   `text/plain` and `text/html` parts. Every other MIME part is counted and
-   skipped — its bytes are never requested from the server. A `⊘📎` indicator
-   shows that attachments exist; they cannot be opened, saved, or previewed.
+| App | Package | Attachments | Images |
+| --- | --- | --- | --- |
+| **D-Mail Kosher** | `io.github.theonionsarewatching.shtigletz` | never downloaded | never |
+| **D-Mail Plus** | `io.github.theonionsarewatching.honeymustard` | save / open / send | never |
+| **D-Mail Pro** | `io.github.theonionsarewatching.onegshabbos` | save / open / send | on demand, per message |
+
+**Rendering in Kosher and Plus is identical**: pure text, no images embedded
+or otherwise. Plus only adds file handling — attachments are saved or handed
+off to other apps, never displayed inside D-Mail.
+
+## Kosher
+
+In **D-Mail Kosher** (and, for rendering, in Plus):
+
+1. **Attachments are never downloaded** (Kosher only). The IMAP layer fetches
+   only `text/plain` and `text/html` parts. Every other MIME part is counted
+   and skipped — its bytes are never requested from the server. A `⊘📎`
+   indicator shows that attachments exist; they cannot be opened, saved, or
+   previewed. In Plus/Pro, attachment bytes are fetched **only** when you
+   explicitly open or save one.
 2. **Remote content never loads.** The message renderer (`SafeWebView`) has
    JavaScript off, network loads blocked, and intercepts **every** resource
    request with an empty response. Remote images, CSS, fonts, and tracking
-   pixels are all dead. The only images anywhere in the app are contact
-   photos already stored on the phone.
+   pixels are all dead. In Pro, images load **only** after an explicit
+   "load images" action; nothing ever loads automatically in any flavor.
 
+## Plus & Pro features (v0.7)
 
-## Other Features (v0.6)
+- **Attachments line at the top of the message** 
+ `📎 2 attachments — tap to open or save`. Pick one → **Open with
+  another app** (handed off via FileProvider) or **Save to Downloads**.
+- **Attach files when composing.** Attach button opens the system document
+  picker (no storage permissions needed, dpad-friendly, multiple files,
+  20 MB total). Tap the attached line to remove one.
+- **Share target.** In a file manager, Share → D-Mail Plus/Pro opens a
+  compose screen with the file attached.
+- **Pro: three view modes**, switchable per message with the right soft key
+  ("View") or by tapping the date line. Default mode set in Settings.
+  - **Text only** — exactly the Kosher rendering.
+  - **Text + images** (default) — pure text with `[image]` placeholders;
+    tap one to load just that image, or use the top line
+    (`🖼 5 images — tap to load all`). Embedded (cid:) images come over
+    IMAP; remote ones over HTTPS — each only when you ask.
+  - **Original HTML** — sanitized HTML (scripts/handlers stripped), images
+    blocked until you press **Load images**.
+
+## Features (all flavors, v0.7)
 
 - **Multiple accounts.** Add as many IMAP/SMTP accounts as you like. With
   more than one account, the app opens to an account picker showing each
@@ -48,11 +83,13 @@ A kosher-friendly, dpad-navigable email client for Android.
   dpad) for: mark read/unread, star/unstar, reply, forward, move to
   folder…, move to Trash, delete permanently. Long-press an account to edit
   or remove it.
-- **Settings.** Theme, text size, sort order, page size (25–200), in-app
-  auto refresh (off–30 min), link display mode, and how many newest messages
-  to save for offline (off–50).
-  Offline prefetch uses IMAP PEEK, so saving a message does **not** mark it
-  read.
+- **Settings.** Theme, text size (Extra small–Huge), sort order, page size
+  (25–200), auto refresh (off / on-open-if-stale / 1 min–hourly / once a
+  day), link display mode, and how many newest messages to save for offline
+  (off–50). Offline prefetch uses IMAP PEEK, so saving a message does
+  **not** mark it read.
+- **Dates follow the system.** 12/24-hour format matches the phone's
+  setting; messages older than a year show the year instead of the time.
 - **Material 3 UI**, light/dark/system theme, no wasted title bar. Dpad focus
   is always visible: focused rows get a rounded accent outline, focused
   buttons get an accent stroke.
@@ -79,17 +116,15 @@ A kosher-friendly, dpad-navigable email client for Android.
   silently.
 - **Soft keys (optional).** Small action labels above the phone's left/right
   soft keys, different per screen (list: Compose/Folders, reader: Reply/Mark read-unread,
-  accounts: Add/Settings, compose: Send). Off unless the device model is in
-  `res/xml/softkey_profiles.xml` (dummy entries for now — add real models as
-  collected) or the user teaches their keys via Settings → Soft keys →
-  Custom. The learn screen refuses every standard key (dpad, numbers,
-  letters, volume, Back…) so normal keys can never be hijacked.
+  accounts: Add/Settings, compose: Send).
 
 ## Navigation
 
 Standard Android keys throughout — dpad/arrow keys move focus, SELECT/ENTER
-opens, long-press SELECT opens the actions menu, BACK goes up. Works with touch,
+opens, long-press SELECT opens the actions menu, BACK goes up. There is no
+key-remapping layer (the v0.1 calibration screen is gone). Works with touch,
 dpad, or both.
+
 
 ## Setup on the phone
 
@@ -107,6 +142,21 @@ dpad, or both.
   Removing an account deletes its cached mail.
 - No analytics, no telemetry, no network connections except your own mail
   servers.
+
+## Collecting soft-key profiles
+
+To add a device to the built-in soft-key list (`app/src/main/res/xml/softkey_profiles.xml`):
+
+1. The device owner installs D-Mail and learns their keys once:
+   **Settings → Soft keys → Custom** (press left key, press right key, Save).
+2. A **Soft-key report for this device** entry then appears at the bottom of
+   Settings — open it.
+3. Tap **Copy** (or **Share**) and post the report, which contains the
+   exact model string, both key codes, and a ready-to-paste line like:
+   `<profile model="Nokia 2720 Flip" left="1" right="2" />`
+4. Paste that line into `softkey_profiles.xml`, replacing the dummy entries,
+   and ship a new release. That device then gets soft keys automatically
+   (Settings → Soft keys → Automatic).
 
 ## License
 

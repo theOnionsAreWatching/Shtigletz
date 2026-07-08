@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">D-Mail</string>
 
     <!-- Setup -->
     <string name="setup_title">Account setup</string>
@@ -192,4 +191,47 @@
     <string name="keyinfo_share">Share</string>
     <string name="keyinfo_copied">Report copied.</string>
     <string name="keyinfo_no_share">No app available to share.</string>
+
+    <!-- v0.7: sizes / refresh -->
+    <string name="settings_text_xsmall">Extra small</string>
+    <string name="settings_refresh_on_open">On open (if older than 15 min)</string>
+    <string name="settings_refresh_hourly">Every hour</string>
+    <string name="settings_refresh_daily">Once a day</string>
+
+    <!-- v0.7: attachments (Plus/Pro) -->
+    <plurals name="read_attachments_fmt">
+        <item quantity="one">📎 %d attachment — tap to open or save</item>
+        <item quantity="other">📎 %d attachments — tap to open or save</item>
+    </plurals>
+    <string name="read_attachments_title">Attachments</string>
+    <string name="att_open">Open with another app</string>
+    <string name="att_save">Save to Downloads</string>
+    <string name="att_downloading">Downloading…</string>
+    <string name="att_download_failed">Download failed (offline?).</string>
+    <string name="att_no_app">No app can open this file type.</string>
+    <string name="att_saved_fmt">Saved to %1$s</string>
+    <string name="att_save_failed">Could not save.</string>
+    <string name="compose_attach">Attach</string>
+    <string name="compose_attached_fmt">📎 %1$d attached: %2$s — tap to remove</string>
+    <string name="compose_remove_title">Remove attachment</string>
+    <string name="compose_too_big">Attachments too large (20 MB total limit).</string>
+    <string name="compose_attach_failed">Could not attach that file.</string>
+
+    <!-- v0.7: images (Pro) -->
+    <string name="settings_view_mode">Default message view</string>
+    <string name="view_text">Text only</string>
+    <string name="view_textimg">Text + images (tap to load)</string>
+    <string name="view_html">Original HTML</string>
+    <string name="softkey_view">View</string>
+    <string name="read_meta_pro_fmt">%1$s · %2$s — tap to change view</string>
+    <plurals name="images_load_all_fmt">
+        <item quantity="one">🖼 %d image — tap to load</item>
+        <item quantity="other">🖼 %d images — tap to load all</item>
+    </plurals>
+    <string name="images_all_loaded">🖼 %1$d image(s) loaded</string>
+    <string name="images_load_html">🖼 Load images</string>
+    <string name="images_loaded_html">🖼 Images on</string>
+    <string name="images_loading">Loading image(s)…</string>
+    <string name="images_failed">Image could not be loaded.</string>
+    <string name="images_some_failed">Some images could not be loaded.</string>
 </resources>

@@ -5,14 +5,21 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Base64
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
+import io.github.theonionsarewatching.shtigletz.FlavorConfig
 import io.github.theonionsarewatching.shtigletz.R
 import io.github.theonionsarewatching.shtigletz.Settings
+import io.github.theonionsarewatching.shtigletz.attach.AttachmentOps
 import io.github.theonionsarewatching.shtigletz.db.MailDb
+import io.github.theonionsarewatching.shtigletz.mail.BodyExtractor
+import io.github.theonionsarewatching.shtigletz.mail.HttpFetcher
 import io.github.theonionsarewatching.shtigletz.mail.ImapService
 import io.github.theonionsarewatching.shtigletz.mail.MailAccount
 import io.github.theonionsarewatching.shtigletz.mail.MailText
@@ -40,10 +47,18 @@ class ReadActivity : SoftKeyActivity() {
     private lateinit var fromText: TextView
     private lateinit var subjectText: TextView
     private lateinit var metaText: TextView
+    private lateinit var attachmentsLine: TextView
+    private lateinit var imagesLine: TextView
 
     private var uids: LongArray = LongArray(0)
     private var index: Int = 0
-    private val dateFmt = SimpleDateFormat("EEE, MMM d yyyy HH:mm", Locale.getDefault())
+
+    // ---- Pro view state (unused when FlavorConfig.IMAGES is false) ----
+    private var viewMode: SafeWebView.RenderMode = SafeWebView.RenderMode.TEXT
+    private var imageSrcs: List<String> = emptyList()
+    private val loadedImages = HashMap<Int, String>()   // TEXT_IMG: idx -> data URI
+    private val cidImages = HashMap<String, String>()   // HTML: cid -> data URI
+    private var htmlImagesOn = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,18 +67,18 @@ class ReadActivity : SoftKeyActivity() {
         account = loaded
         folder = intent.getStringExtra(EXTRA_FOLDER) ?: "INBOX"
         db = MailDb.get(this)
+        viewMode = if (FlavorConfig.IMAGES) defaultViewMode() else SafeWebView.RenderMode.TEXT
 
         setContentView(R.layout.activity_read)
         web = findViewById(R.id.bodyView)
         fromText = findViewById(R.id.readFrom)
         subjectText = findViewById(R.id.readSubject)
         metaText = findViewById(R.id.readMeta)
+        attachmentsLine = findViewById(R.id.readAttachments)
+        imagesLine = findViewById(R.id.readImages)
 
-        // Tapped [link]s never navigate — the URL is shown as text.
-        web.onLinkClicked = { url -> showLinkDialog(url) }
-
-        // Reading-position bar fills as the body scrolls.
-        val progress = findViewById<android.widget.ProgressBar>(R.id.readProgress)
+        web.onLinkClicked = { url -> onTapped(url) }
+        val progress = findViewById<ProgressBar>(R.id.readProgress)
         web.onScrollPercent = { pct -> progress.progress = pct }
 
         uids = intent.getLongArrayExtra(EXTRA_UIDS) ?: LongArray(0)
@@ -75,7 +90,20 @@ class ReadActivity : SoftKeyActivity() {
         findViewById<Button>(R.id.prevButton).setOnClickListener { move(-1) }
         findViewById<Button>(R.id.nextButton).setOnClickListener { move(+1) }
 
+        attachmentsLine.setOnClickListener { attachmentDialog() }
+        imagesLine.setOnClickListener { onImagesLine() }
+        if (FlavorConfig.IMAGES) {
+            // Touch path for cycling the view (soft key does it too).
+            metaText.setOnClickListener { cycleViewMode() }
+        }
+
         load()
+    }
+
+    private fun defaultViewMode(): SafeWebView.RenderMode = when (Settings.viewMode(this)) {
+        "text" -> SafeWebView.RenderMode.TEXT
+        "html" -> SafeWebView.RenderMode.HTML
+        else -> SafeWebView.RenderMode.TEXT_IMG
     }
 
     private fun current(): MailDb.CachedMessage? =
@@ -83,6 +111,12 @@ class ReadActivity : SoftKeyActivity() {
 
     private fun load() {
         if (index !in uids.indices) { finish(); return }
+        // Per-message image state resets.
+        imageSrcs = emptyList()
+        loadedImages.clear()
+        cidImages.clear()
+        htmlImagesOn = false
+
         val uid = uids[index]
         val cached = db.message(account.id, folder, uid)
 
@@ -92,15 +126,20 @@ class ReadActivity : SoftKeyActivity() {
             return
         }
 
-        // Not cached: fetch text parts from the server.
         metaText.text = getString(R.string.read_loading)
+        attachmentsLine.visibility = View.GONE
+        imagesLine.visibility = View.GONE
         web.showPlaceholder(getString(R.string.read_loading))
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     ImapService(account, folder).fetchMessage(uid, markSeen = true)?.also { full ->
                         db.upsertEnvelope(account.id, folder, full.envelope)
-                        db.saveBody(account.id, folder, uid, full.body.plain, full.body.html, full.body.blockedParts)
+                        db.saveBody(
+                            account.id, folder, uid,
+                            full.body.plain, full.body.html, full.body.blockedParts,
+                            AttachmentOps.metasToJson(full.body.attachments)
+                        )
                         db.setSeen(account.id, folder, uid, true)
                     }
                 }
@@ -120,56 +159,243 @@ class ReadActivity : SoftKeyActivity() {
         }
     }
 
-    /** Left = Reply; right = toggle read/unread for the open message. */
-    private fun updateSoftKeys() {
-        val seen = current()?.seen != false
-        setSoftKeys(
-            getString(R.string.read_reply), { reply() },
-            getString(if (seen) R.string.action_mark_unread else R.string.action_mark_read),
-            { toggleSeen() }
-        )
-    }
-
-    private fun toggleSeen() {
-        if (index !in uids.indices) return
-        val uid = uids[index]
-        val newSeen = !(current()?.seen ?: true)
-        db.setSeen(account.id, folder, uid, newSeen)
-        lifecycleScope.launch(Dispatchers.IO) {
-            runCatching { ImapService(account, folder).setSeen(uid, newSeen) }
-        }
-        Toast.makeText(
-            this,
-            if (newSeen) R.string.action_mark_read else R.string.action_mark_unread,
-            Toast.LENGTH_SHORT
-        ).show()
-        updateSoftKeys()
+    private fun dateLine(millis: Long): String {
+        if (millis <= 0) return ""
+        val is24 = android.text.format.DateFormat.is24HourFormat(this)
+        val pattern = if (is24) "EEE, MMM d yyyy, HH:mm" else "EEE, MMM d yyyy, h:mm a"
+        return SimpleDateFormat(pattern, Locale.getDefault()).format(Date(millis))
     }
 
     private fun show(msg: MailDb.CachedMessage) {
         fromText.text = msg.fromName
         subjectText.text = msg.subject
-        val date = if (msg.dateMillis > 0) dateFmt.format(Date(msg.dateMillis)) else ""
-        metaText.text = if (msg.blockedParts > 0) {
-            getString(R.string.read_meta_blocked, date, msg.blockedParts)
-        } else date
-        findViewById<android.widget.ProgressBar>(R.id.readProgress).progress = 0
-        web.showEmail(msg.bodyPlain, msg.bodyHtml, Settings.showLinks(this))
+        val date = dateLine(msg.dateMillis)
+        metaText.text = when {
+            FlavorConfig.IMAGES -> getString(R.string.read_meta_pro_fmt, date, viewModeName())
+            FlavorConfig.ATTACHMENTS -> date
+            msg.blockedParts > 0 -> getString(R.string.read_meta_blocked, date, msg.blockedParts)
+            else -> date
+        }
+        findViewById<ProgressBar>(R.id.readProgress).progress = 0
+        render(msg)
+        updateAttachmentsLine(msg)
         updateSoftKeys()
-        // Dpad up/down scrolls the body natively once the WebView has focus.
         web.requestFocus()
     }
 
-    private fun markSeen(uid: Long) {
-        db.setSeen(account.id, folder, uid, true)
-        lifecycleScope.launch(Dispatchers.IO) {
-            runCatching { ImapService(account, folder).setSeen(uid, true) }
-        }
-        updateSoftKeys()
+    private fun render(msg: MailDb.CachedMessage) {
+        imageSrcs = web.showEmail(
+            msg.bodyPlain, msg.bodyHtml, Settings.showLinks(this),
+            mode = viewMode,
+            loadedImages = loadedImages,
+            cidImages = cidImages,
+            networkImages = htmlImagesOn
+        )
+        updateImagesLine()
     }
 
-    private fun showLinkDialog(url: String) {
+    // ---- Attachments (Plus/Pro) ----
+
+    private fun attachments(): List<BodyExtractor.AttachmentMeta> =
+        AttachmentOps.metasFromJson(current()?.attachmentsJson)
+
+    private fun updateAttachmentsLine(msg: MailDb.CachedMessage) {
+        val metas = AttachmentOps.metasFromJson(msg.attachmentsJson)
+        if (!FlavorConfig.ATTACHMENTS || metas.isEmpty()) {
+            attachmentsLine.visibility = View.GONE
+            return
+        }
+        attachmentsLine.visibility = View.VISIBLE
+        attachmentsLine.text = resources.getQuantityString(
+            R.plurals.read_attachments_fmt, metas.size, metas.size
+        )
+    }
+
+    private fun attachmentDialog() {
+        val metas = attachments()
+        if (metas.isEmpty()) return
+        val names = metas.map { m ->
+            val size = AttachmentOps.sizeLabel(m.sizeBytes)
+            if (size.isBlank()) m.name else "${m.name} ($size)"
+        }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(R.string.read_attachments_title)
+            .setItems(names) { _, which -> attachmentActions(metas[which]) }
+            .setNegativeButton(R.string.link_close, null)
+            .show()
+    }
+
+    private fun attachmentActions(meta: BodyExtractor.AttachmentMeta) {
+        val actions = arrayOf(getString(R.string.att_open), getString(R.string.att_save))
+        AlertDialog.Builder(this)
+            .setTitle(meta.name)
+            .setItems(actions) { _, which ->
+                when (which) {
+                    0 -> withAttachmentFile(meta) { file ->
+                        if (!AttachmentOps.open(this, file, meta.mime)) {
+                            Toast.makeText(this, R.string.att_no_app, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    1 -> withAttachmentFile(meta) { file ->
+                        val where = AttachmentOps.saveToDownloads(this, file, meta.name, meta.mime)
+                        Toast.makeText(
+                            this,
+                            if (where != null) getString(R.string.att_saved_fmt, where)
+                            else getString(R.string.att_save_failed),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    /** Download (once) then act. */
+    private fun withAttachmentFile(meta: BodyExtractor.AttachmentMeta, action: (java.io.File) -> Unit) {
+        if (index !in uids.indices) return
+        val uid = uids[index]
+        val dest = AttachmentOps.cacheFile(this, uid, meta.name)
+        if (dest.exists() && dest.length() > 0) { action(dest); return }
+        Toast.makeText(this, R.string.att_downloading, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                runCatching {
+                    ImapService(account, folder).fetchAttachmentTo(uid, meta.index, dest)
+                }.getOrDefault(false)
+            }
+            if (ok) action(dest)
+            else Toast.makeText(this@ReadActivity, R.string.att_download_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // ---- Images (Pro) ----
+
+    private fun viewModeName(): String = when (viewMode) {
+        SafeWebView.RenderMode.TEXT -> getString(R.string.view_text)
+        SafeWebView.RenderMode.TEXT_IMG -> getString(R.string.view_textimg)
+        SafeWebView.RenderMode.HTML -> getString(R.string.view_html)
+    }
+
+    private fun cycleViewMode() {
+        if (!FlavorConfig.IMAGES) return
+        viewMode = when (viewMode) {
+            SafeWebView.RenderMode.TEXT -> SafeWebView.RenderMode.TEXT_IMG
+            SafeWebView.RenderMode.TEXT_IMG -> SafeWebView.RenderMode.HTML
+            SafeWebView.RenderMode.HTML -> SafeWebView.RenderMode.TEXT
+        }
+        Toast.makeText(this, viewModeName(), Toast.LENGTH_SHORT).show()
+        current()?.let { show(it) }
+    }
+
+    private fun updateImagesLine() {
+        if (!FlavorConfig.IMAGES) { imagesLine.visibility = View.GONE; return }
+        when (viewMode) {
+            SafeWebView.RenderMode.TEXT_IMG -> {
+                if (imageSrcs.isEmpty()) { imagesLine.visibility = View.GONE; return }
+                imagesLine.visibility = View.VISIBLE
+                val remaining = imageSrcs.indices.count { it !in loadedImages }
+                imagesLine.text =
+                    if (remaining == 0) getString(R.string.images_all_loaded, imageSrcs.size)
+                    else resources.getQuantityString(R.plurals.images_load_all_fmt, remaining, remaining)
+            }
+            SafeWebView.RenderMode.HTML -> {
+                imagesLine.visibility = View.VISIBLE
+                imagesLine.text =
+                    if (htmlImagesOn) getString(R.string.images_loaded_html)
+                    else getString(R.string.images_load_html)
+            }
+            else -> imagesLine.visibility = View.GONE
+        }
+    }
+
+    private fun onImagesLine() {
+        if (!FlavorConfig.IMAGES) return
+        when (viewMode) {
+            SafeWebView.RenderMode.TEXT_IMG -> loadAllImages()
+            SafeWebView.RenderMode.HTML -> enableHtmlImages()
+            else -> {}
+        }
+    }
+
+    private fun fetchOneImage(src: String, uid: Long): String? {
+        val result = if (src.startsWith("cid:", true)) {
+            ImapService(account, folder).fetchEmbeddedByCid(uid, src.substringAfter(":"))
+        } else {
+            HttpFetcher.getImage(src)
+        } ?: return null
+        return "data:${result.second};base64," +
+                Base64.encodeToString(result.first, Base64.NO_WRAP)
+    }
+
+    private fun loadImage(idx: Int) {
+        if (index !in uids.indices || idx !in imageSrcs.indices || loadedImages.containsKey(idx)) return
+        val uid = uids[index]
+        val src = imageSrcs[idx]
+        Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val dataUri = withContext(Dispatchers.IO) { runCatching { fetchOneImage(src, uid) }.getOrNull() }
+            if (dataUri == null) {
+                Toast.makeText(this@ReadActivity, R.string.images_failed, Toast.LENGTH_SHORT).show()
+            } else {
+                loadedImages[idx] = dataUri
+                current()?.let { render(it) }
+            }
+        }
+    }
+
+    private fun loadAllImages() {
+        if (index !in uids.indices) return
+        val uid = uids[index]
+        val todo = imageSrcs.indices.filter { it !in loadedImages }
+        if (todo.isEmpty()) return
+        Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            var failures = 0
+            withContext(Dispatchers.IO) {
+                for (i in todo) {
+                    val dataUri = runCatching { fetchOneImage(imageSrcs[i], uid) }.getOrNull()
+                    if (dataUri != null) loadedImages[i] = dataUri else failures++
+                }
+            }
+            current()?.let { render(it) }
+            if (failures > 0) {
+                Toast.makeText(this@ReadActivity, R.string.images_some_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /** HTML mode "Load images": fetch cid parts, then allow network images. */
+    private fun enableHtmlImages() {
+        if (index !in uids.indices || htmlImagesOn) return
+        val uid = uids[index]
+        val html = current()?.bodyHtml ?: ""
+        val cids = Regex("(?i)src\\s*=\\s*([\"'])cid:([^\"']+)\\1").findAll(html)
+            .map { it.groupValues[2].trim() }.distinct().toList()
+        Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                for (cid in cids) {
+                    runCatching {
+                        ImapService(account, folder).fetchEmbeddedByCid(uid, cid)?.let { (bytes, mime) ->
+                            cidImages[cid] =
+                                "data:$mime;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP)
+                        }
+                    }
+                }
+            }
+            htmlImagesOn = true
+            current()?.let { render(it) }
+        }
+    }
+
+    // ---- Taps ----
+
+    private fun onTapped(url: String) {
         when {
+            url.startsWith("dimg:", true) -> {
+                url.substringAfter(":").toIntOrNull()?.let { loadImage(it) }
+            }
             url.startsWith("mailto:", true) -> {
                 val addr = url.substringAfter(":").substringBefore("?")
                 val b = AlertDialog.Builder(this)
@@ -213,6 +439,49 @@ class ReadActivity : SoftKeyActivity() {
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         cm.setPrimaryClip(ClipData.newPlainText("dmail", value))
         Toast.makeText(this, R.string.link_copied, Toast.LENGTH_SHORT).show()
+    }
+
+    // ---- Soft keys ----
+
+    /** Left = Reply everywhere. Right = View cycle in Pro, read/unread otherwise. */
+    private fun updateSoftKeys() {
+        if (FlavorConfig.IMAGES) {
+            setSoftKeys(
+                getString(R.string.read_reply), { reply() },
+                getString(R.string.softkey_view), { cycleViewMode() }
+            )
+        } else {
+            val seen = current()?.seen != false
+            setSoftKeys(
+                getString(R.string.read_reply), { reply() },
+                getString(if (seen) R.string.action_mark_unread else R.string.action_mark_read),
+                { toggleSeen() }
+            )
+        }
+    }
+
+    private fun toggleSeen() {
+        if (index !in uids.indices) return
+        val uid = uids[index]
+        val newSeen = !(current()?.seen ?: true)
+        db.setSeen(account.id, folder, uid, newSeen)
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching { ImapService(account, folder).setSeen(uid, newSeen) }
+        }
+        Toast.makeText(
+            this,
+            if (newSeen) R.string.action_mark_read else R.string.action_mark_unread,
+            Toast.LENGTH_SHORT
+        ).show()
+        updateSoftKeys()
+    }
+
+    private fun markSeen(uid: Long) {
+        db.setSeen(account.id, folder, uid, true)
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching { ImapService(account, folder).setSeen(uid, true) }
+        }
+        updateSoftKeys()
     }
 
     private fun move(delta: Int) {

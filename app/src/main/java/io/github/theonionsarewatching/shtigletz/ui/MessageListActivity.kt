@@ -104,7 +104,11 @@ class MessageListActivity : SoftKeyActivity() {
         }
 
         renderCache(focusFirst = true)
-        refresh(silent = adapter.itemCount > 0)
+        // "On open" mode (-1) only auto-refreshes when the cache is stale.
+        val auto = Settings.autoRefreshMinutes(this)
+        val stale = System.currentTimeMillis() -
+                Settings.lastRefresh(this, account.id, folder) > 15 * 60_000L
+        if (auto != -1 || stale) refresh(silent = adapter.itemCount > 0)
     }
 
     override fun onResume() {
@@ -163,6 +167,7 @@ class MessageListActivity : SoftKeyActivity() {
             loading = false
             result.onSuccess { page ->
                 windowStart = page.windowStart
+                Settings.setLastRefresh(this@MessageListActivity, account.id, folder)
                 renderCache(focusFirst = false)
                 if (adapter.itemCount == 0) showStatus(getString(R.string.list_empty))
                 else hideStatus()
@@ -222,7 +227,9 @@ class MessageListActivity : SoftKeyActivity() {
                 svc.fetchMessage(e.uid, markSeen = false)?.let { full ->
                     db.saveBody(
                         account.id, folder, e.uid,
-                        full.body.plain, full.body.html, full.body.blockedParts
+                        full.body.plain, full.body.html, full.body.blockedParts,
+                        io.github.theonionsarewatching.shtigletz.attach.AttachmentOps
+                            .metasToJson(full.body.attachments)
                     )
                 }
             }
@@ -345,7 +352,12 @@ class MessageListActivity : SoftKeyActivity() {
             withContext(Dispatchers.IO) {
                 runCatching {
                     ImapService(account, folder).fetchMessage(uid, markSeen = false)?.let { full ->
-                        db.saveBody(account.id, folder, uid, full.body.plain, full.body.html, full.body.blockedParts)
+                        db.saveBody(
+                            account.id, folder, uid,
+                            full.body.plain, full.body.html, full.body.blockedParts,
+                            io.github.theonionsarewatching.shtigletz.attach.AttachmentOps
+                                .metasToJson(full.body.attachments)
+                        )
                     }
                 }
             }
