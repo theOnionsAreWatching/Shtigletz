@@ -18,7 +18,7 @@ sideloading — no Play Store, no Google services required.
 The enforcement lives in two files — `mail/BodyExtractor.kt` and
 `ui/SafeWebView.kt`. **Do not weaken them.** Everything else can change.
 
-## Features (v0.3)
+## Features (v0.4)
 
 - **Multiple accounts.** Add as many IMAP/SMTP accounts as you like. With
   more than one account, the app opens to an account picker showing each
@@ -60,6 +60,19 @@ The enforcement lives in two files — `mail/BodyExtractor.kt` and
 - Reply, forward, compose (plain text only), delete (moves to Trash when the
   server has one, otherwise asks before deleting permanently).
 - Contact photo or monogram avatars from the local address book.
+- **Small-screen friendly.** Compact bars, buttons, and rows sized for
+  240–320dp feature-phone screens.
+- **Scroll position.** Lists get a scrollbar + draggable fast-scroll slider;
+  the reader shows a thin progress bar that fills as you scroll the message.
+- **Account order.** Long-press an account → Move up / Move down to set the
+  order on the picker screen.
+- **Soft keys (optional).** Small action labels above the phone's left/right
+  soft keys, different per screen (list: Compose/Folders, reader: Reply/Next,
+  accounts: Add/Settings, compose: Send). Off unless the device model is in
+  `res/xml/softkey_profiles.xml` (dummy entries for now — add real models as
+  collected) or the user teaches their keys via Settings → Soft keys →
+  Custom. The learn screen refuses every standard key (dpad, numbers,
+  letters, volume, Back…) so normal keys can never be hijacked.
 
 ## Navigation
 
