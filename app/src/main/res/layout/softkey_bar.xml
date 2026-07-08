@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/softkeyBar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="?attr/colorSurfaceVariant"
+    android:paddingStart="8dp" android:paddingEnd="8dp"
+    android:paddingTop="2dp" android:paddingBottom="2dp">
+
+    <TextView android:id="@+id/softLeftLabel"
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:gravity="start"
+        android:textSize="11sp" android:textStyle="bold"
+        android:singleLine="true" android:ellipsize="end" />
+
+    <TextView android:id="@+id/softRightLabel"
+        android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:gravity="end"
+        android:textSize="11sp" android:textStyle="bold"
+        android:singleLine="true" android:ellipsize="end" />
+</LinearLayout>
