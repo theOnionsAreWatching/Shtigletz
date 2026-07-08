@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/settings_title"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:paddingBottom="10dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/settings_theme" android:textStyle="bold" />
+        <Spinner android:id="@+id/themeSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_text_size" android:textStyle="bold" />
+        <Spinner android:id="@+id/textSizeSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_sort" android:textStyle="bold" />
+        <Spinner android:id="@+id/sortSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_page_size" android:textStyle="bold" />
+        <Spinner android:id="@+id/pageSizeSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_auto_refresh" android:textStyle="bold" />
+        <Spinner android:id="@+id/autoRefreshSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_links" android:textStyle="bold" />
+        <Spinner android:id="@+id/linksSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_tap_contacts" android:textStyle="bold" />
+        <Spinner android:id="@+id/tapContactsSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_notifications" android:textStyle="bold" />
+        <Spinner android:id="@+id/notifySpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_notify_content" android:textStyle="bold" />
+        <Spinner android:id="@+id/notifyContentSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_softkeys" android:textStyle="bold" />
+        <Spinner android:id="@+id/softkeySpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/settings_softkeys_note"
+            android:textSize="11sp" android:alpha="0.7" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_prefetch" android:textStyle="bold" />
+        <Spinner android:id="@+id/prefetchSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="18dp"
+            android:text="@string/settings_about" android:textStyle="bold" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/about_url"
+            android:textSize="13sp" android:alpha="0.8" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/about_license"
+            android:textSize="11sp" android:alpha="0.6"
+            android:paddingTop="4dp" android:paddingBottom="8dp" />
+
+        <Button android:id="@+id/keyInfoButton" style="@style/DMail.Button"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/keyinfo_open" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/keyinfo_open_note"
+            android:textSize="11sp" android:alpha="0.6"
+            android:paddingTop="4dp" android:paddingBottom="12dp" />
+    </LinearLayout>
+</ScrollView>
