@@ -3,15 +3,17 @@
     Device soft-key profiles.
 
     model = exact android.os.Build.MODEL of the device (case-insensitive).
-            (Settings app usually shows it under About phone > Model,
-             or run: adb shell getprop ro.product.model)
+            (Settings app usually shows it under About phone > Model.)
     left / right = Android keyCode integers sent by the physical soft keys.
 
     When "Soft keys" is set to Automatic (the default), the feature turns on
-    ONLY for devices listed here. The entries below are DUMMY placeholders —
-    replace them with real device profiles as they are collected.
+    ONLY for devices listed here. To add a device, have its owner use
+    Settings > Soft keys > Custom once, then Settings > "Soft-key report for
+    this device" produces a ready-to-paste profile line.
 -->
 <profiles>
-    <profile model="DUMMY-EXAMPLE-FLIP-1" left="1" right="2" />
-    <profile model="DUMMY-EXAMPLE-BAR-2" left="131" right="132" />
+    <!-- Schock Classic -->
+    <profile model="SC3218" left="1" right="2" />
+    <!-- Summit Boost Flip -->
+    <profile model="SL006D" left="1" right="2" />
 </profiles>

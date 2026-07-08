@@ -55,6 +55,7 @@ class ReadActivity : SoftKeyActivity() {
 
     // ---- Pro view state (unused when FlavorConfig.IMAGES is false) ----
     private var viewMode: SafeWebView.RenderMode = SafeWebView.RenderMode.TEXT
+    private var lastNonHtmlMode: SafeWebView.RenderMode = SafeWebView.RenderMode.TEXT_IMG
     private var imageSrcs: List<String> = emptyList()
     private val loadedImages = HashMap<Int, String>()   // TEXT_IMG: idx -> data URI
     private val cidImages = HashMap<String, String>()   // HTML: cid -> data URI
@@ -68,6 +69,8 @@ class ReadActivity : SoftKeyActivity() {
         folder = intent.getStringExtra(EXTRA_FOLDER) ?: "INBOX"
         db = MailDb.get(this)
         viewMode = if (FlavorConfig.IMAGES) defaultViewMode() else SafeWebView.RenderMode.TEXT
+        lastNonHtmlMode =
+            if (viewMode == SafeWebView.RenderMode.HTML) SafeWebView.RenderMode.TEXT_IMG else viewMode
 
         setContentView(R.layout.activity_read)
         web = findViewById(R.id.bodyView)
@@ -284,6 +287,20 @@ class ReadActivity : SoftKeyActivity() {
             SafeWebView.RenderMode.TEXT_IMG -> SafeWebView.RenderMode.HTML
             SafeWebView.RenderMode.HTML -> SafeWebView.RenderMode.TEXT
         }
+        if (viewMode != SafeWebView.RenderMode.HTML) lastNonHtmlMode = viewMode
+        Toast.makeText(this, viewModeName(), Toast.LENGTH_SHORT).show()
+        current()?.let { show(it) }
+    }
+
+    /** Right soft key: jump between HTML and the last text view. */
+    private fun toggleHtml() {
+        if (!FlavorConfig.IMAGES) return
+        viewMode = if (viewMode == SafeWebView.RenderMode.HTML) {
+            lastNonHtmlMode
+        } else {
+            lastNonHtmlMode = viewMode
+            SafeWebView.RenderMode.HTML
+        }
         Toast.makeText(this, viewModeName(), Toast.LENGTH_SHORT).show()
         current()?.let { show(it) }
     }
@@ -319,7 +336,10 @@ class ReadActivity : SoftKeyActivity() {
     }
 
     private fun fetchOneImage(src: String, uid: Long): String? {
-        val result = if (src.startsWith("cid:", true)) {
+        val isRemote = !src.startsWith("cid:", true)
+        // D-Mail Max: the WebView loads approved remote images itself.
+        if (isRemote && FlavorConfig.WEBVIEW_IMAGES) return SafeWebView.NET_MARK
+        val result = if (!isRemote) {
             ImapService(account, folder).fetchEmbeddedByCid(uid, src.substringAfter(":"))
         } else {
             HttpFetcher.getImage(src)
@@ -446,9 +466,12 @@ class ReadActivity : SoftKeyActivity() {
     /** Left = Reply everywhere. Right = View cycle in Pro, read/unread otherwise. */
     private fun updateSoftKeys() {
         if (FlavorConfig.IMAGES) {
+            // Label shows the view the key switches TO.
+            val label = if (viewMode == SafeWebView.RenderMode.HTML)
+                getString(R.string.softkey_text) else getString(R.string.softkey_html)
             setSoftKeys(
                 getString(R.string.read_reply), { reply() },
-                getString(R.string.softkey_view), { cycleViewMode() }
+                label, { toggleHtml() }
             )
         } else {
             val seen = current()?.seen != false

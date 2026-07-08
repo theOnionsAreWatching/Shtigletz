@@ -2,19 +2,27 @@
 
 A kosher-friendly, dpad-navigable email client for Android.
 
-## Three apps
+## Four apps
+
 
 | App | Package | Attachments | Images |
 | --- | --- | --- | --- |
 | **D-Mail Kosher** | `io.github.theonionsarewatching.shtigletz` | never downloaded | never |
 | **D-Mail Plus** | `io.github.theonionsarewatching.honeymustard` | save / open / send | never |
 | **D-Mail Pro** | `io.github.theonionsarewatching.onegshabbos` | save / open / send | on demand, per message |
+| **D-Mail Max** | `io.github.theonionsarewatching.gefilte` | save / open / send | on demand, loaded by the browser engine |
 
 **Rendering in Kosher and Plus is identical**: pure text, no images embedded
 or otherwise. Plus only adds file handling — attachments are saved or handed
 off to other apps, never displayed inside D-Mail.
 
-## Kosher
+**Pro vs Max**: both show images only when you ask. Pro downloads each image
+itself and embeds it in the page; Max lets the built-in browser engine load
+approved images directly — try Max if images don't appear on your device in
+Pro. Nothing ever loads without a tap in either app.
+
+
+## Kosher Features
 
 In **D-Mail Kosher** (and, for rendering, in Plus):
 
@@ -30,18 +38,19 @@ In **D-Mail Kosher** (and, for rendering, in Plus):
    pixels are all dead. In Pro, images load **only** after an explicit
    "load images" action; nothing ever loads automatically in any flavor.
 
-## Plus & Pro features (v0.7)
+## Plus / Pro / Max features
 
-- **Attachments line at the top of the message** 
- `📎 2 attachments — tap to open or save`. Pick one → **Open with
+- **Attachments line at the top of the message** (no scrolling to the
+  bottom): `📎 2 attachments — tap to open or save`. Pick one → **Open with
   another app** (handed off via FileProvider) or **Save to Downloads**.
 - **Attach files when composing.** Attach button opens the system document
   picker (no storage permissions needed, dpad-friendly, multiple files,
   20 MB total). Tap the attached line to remove one.
 - **Share target.** In a file manager, Share → D-Mail Plus/Pro opens a
   compose screen with the file attached.
-- **Pro: three view modes**, switchable per message with the right soft key
-  ("View") or by tapping the date line. Default mode set in Settings.
+- **Pro & Max: three view modes.** The right soft key jumps between HTML
+  and text; tapping the date line cycles all three. Default mode set in
+  Settings.
   - **Text only** — exactly the Kosher rendering.
   - **Text + images** (default) — pure text with `[image]` placeholders;
     tap one to load just that image, or use the top line
@@ -50,7 +59,7 @@ In **D-Mail Kosher** (and, for rendering, in Plus):
   - **Original HTML** — sanitized HTML (scripts/handlers stripped), images
     blocked until you press **Load images**.
 
-## Features (all flavors, v0.7)
+## Features (all flavors)
 
 - **Multiple accounts.** Add as many IMAP/SMTP accounts as you like. With
   more than one account, the app opens to an account picker showing each
@@ -116,7 +125,10 @@ In **D-Mail Kosher** (and, for rendering, in Plus):
   silently.
 - **Soft keys (optional).** Small action labels above the phone's left/right
   soft keys, different per screen (list: Compose/Folders, reader: Reply/Mark read-unread,
-  accounts: Add/Settings, compose: Send).
+  accounts: Add/Settings, compose: Send). Off unless the device model is in
+  `res/xml/softkey_profiles.xml` or the user teaches their keys via Settings → Soft keys →
+  Custom. The learn screen refuses every standard key (dpad, numbers,
+  letters, volume, Back…) so normal keys can never be hijacked.
 
 ## Navigation
 
@@ -145,7 +157,7 @@ dpad, or both.
 
 ## Collecting soft-key profiles
 
-To add a device to the built-in soft-key list (`app/src/main/res/xml/softkey_profiles.xml`):
+To get your phone added to the built-in soft-key list:
 
 1. The device owner installs D-Mail and learns their keys once:
    **Settings → Soft keys → Custom** (press left key, press right key, Save).
@@ -157,6 +169,9 @@ To add a device to the built-in soft-key list (`app/src/main/res/xml/softkey_pro
 4. Paste that line into `softkey_profiles.xml`, replacing the dummy entries,
    and ship a new release. That device then gets soft keys automatically
    (Settings → Soft keys → Automatic).
+
+The `model` attribute must be the device's exact `Build.MODEL` — the report
+provides it verbatim, so no guessing.
 
 ## License
 

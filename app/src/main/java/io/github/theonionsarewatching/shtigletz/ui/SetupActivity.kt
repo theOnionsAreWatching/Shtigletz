@@ -65,6 +65,14 @@ class SetupActivity : SoftKeyActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setup)
+        io.github.theonionsarewatching.shtigletz.input.SoftKeys.maybeOfferSetup(this)
+        findViewById<android.widget.TextView>(R.id.setupNote).setText(
+            when {
+                !io.github.theonionsarewatching.shtigletz.FlavorConfig.ATTACHMENTS -> R.string.setup_note
+                !io.github.theonionsarewatching.shtigletz.FlavorConfig.IMAGES -> R.string.setup_note_plus
+                else -> R.string.setup_note_pro
+            }
+        )
 
         val displayName = findViewById<EditText>(R.id.displayName)
         val email = findViewById<EditText>(R.id.email)

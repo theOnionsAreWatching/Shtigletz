@@ -44,6 +44,20 @@ class ComposeActivity : SoftKeyActivity() {
         ActivityResultContracts.OpenMultipleDocuments()
     ) { uris -> uris?.forEach { importUri(it) }; refreshAttachedLabel() }
 
+    /** GET_CONTENT chooser — lets the user pick a file manager app instead. */
+    private val appPicker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data ?: return@registerForActivityResult
+        val clip = data.clipData
+        if (clip != null) {
+            for (i in 0 until clip.itemCount) clip.getItemAt(i).uri?.let { importUri(it) }
+        } else {
+            data.data?.let { importUri(it) }
+        }
+        refreshAttachedLabel()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val loaded = AccountStore.get(this, intent.getStringExtra(EXTRA_ACCOUNT_ID))
@@ -68,7 +82,7 @@ class ComposeActivity : SoftKeyActivity() {
 
         if (FlavorConfig.ATTACHMENTS) {
             attach.visibility = View.VISIBLE
-            attach.setOnClickListener { picker.launch(arrayOf("*/*")) }
+            attach.setOnClickListener { attachSourceDialog() }
             attachedLabel.setOnClickListener { removeDialog() }
             handleShareIntent(body)
         } else {
@@ -76,8 +90,15 @@ class ComposeActivity : SoftKeyActivity() {
         }
         refreshAttachedLabel()
 
-        // Soft key (when enabled).
-        setSoftKeys(getString(R.string.compose_send), { send.performClick() })
+        // Soft keys (when enabled): Send / Attach.
+        if (FlavorConfig.ATTACHMENTS) {
+            setSoftKeys(
+                getString(R.string.compose_send), { send.performClick() },
+                getString(R.string.compose_attach), { attachSourceDialog() }
+            )
+        } else {
+            setSoftKeys(getString(R.string.compose_send), { send.performClick() })
+        }
 
         send.setOnClickListener {
             val toValue = to.text.toString().trim()
@@ -170,6 +191,39 @@ class ComposeActivity : SoftKeyActivity() {
         }.onFailure {
             Toast.makeText(this, R.string.compose_attach_failed, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /** Pick where to pick from: the system picker, or any installed file app. */
+    private fun attachSourceDialog() {
+        if (!FlavorConfig.ATTACHMENTS) return
+        AlertDialog.Builder(this)
+            .setTitle(R.string.attach_source_title)
+            .setItems(
+                arrayOf(
+                    getString(R.string.attach_source_system),
+                    getString(R.string.attach_source_apps)
+                )
+            ) { _, which ->
+                when (which) {
+                    0 -> picker.launch(arrayOf("*/*"))
+                    1 -> {
+                        val get = Intent(Intent.ACTION_GET_CONTENT).apply {
+                            type = "*/*"
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                        }
+                        runCatching {
+                            appPicker.launch(
+                                Intent.createChooser(get, getString(R.string.attach_source_apps))
+                            )
+                        }.onFailure {
+                            Toast.makeText(this, R.string.compose_attach_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun refreshAttachedLabel() {

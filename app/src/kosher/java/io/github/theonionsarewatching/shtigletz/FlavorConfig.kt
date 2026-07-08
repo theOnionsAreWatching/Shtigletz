@@ -5,4 +5,5 @@ object FlavorConfig {
     const val NAME = "kosher"
     const val ATTACHMENTS = false
     const val IMAGES = false
+    const val WEBVIEW_IMAGES = false
 }

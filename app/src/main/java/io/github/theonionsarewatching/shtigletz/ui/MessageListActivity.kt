@@ -72,6 +72,7 @@ class MessageListActivity : SoftKeyActivity() {
         db = MailDb.get(this)
 
         setContentView(R.layout.activity_message_list)
+        io.github.theonionsarewatching.shtigletz.input.SoftKeys.maybeOfferSetup(this)
         titleView = findViewById(R.id.listTitle)
         status = findViewById(R.id.listStatus)
         loadOlder = findViewById(R.id.loadOlderButton)
@@ -160,7 +161,6 @@ class MessageListActivity : SoftKeyActivity() {
                     val svc = ImapService(account, folder)
                     val page = svc.fetchPage(null, pageSize)
                     for (e in page.envelopes) db.upsertEnvelope(account.id, folder, e)
-                    prefetchBodies(svc, page.envelopes)
                     page
                 }
             }
@@ -168,7 +168,12 @@ class MessageListActivity : SoftKeyActivity() {
             result.onSuccess { page ->
                 windowStart = page.windowStart
                 Settings.setLastRefresh(this@MessageListActivity, account.id, folder)
+                // Show the fresh envelopes NOW; body prefetch happens in the
+                // background (it used to block this render for its whole run).
                 renderCache(focusFirst = false)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    runCatching { prefetchBodies(ImapService(account, folder), page.envelopes) }
+                }
                 if (adapter.itemCount == 0) showStatus(getString(R.string.list_empty))
                 else hideStatus()
                 if (pendingLoadOlder) {

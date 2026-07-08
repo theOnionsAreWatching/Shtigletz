@@ -11,8 +11,8 @@ android {
         // minSdk 23: androidx.security-crypto (encrypted credential storage) requires API 23+.
         minSdk = 23
         targetSdk = 34
-        versionCode = 11
-        versionName = "0.7.0"
+        versionCode = 12
+        versionName = "0.7.1"
     }
 
     // Three apps, one codebase. The dial is "how much of the message gets
@@ -35,6 +35,11 @@ android {
             dimension = "policy"
             applicationId = "io.github.theonionsarewatching.onegshabbos"
             resValue("string", "app_name", "D-Mail Pro")
+        }
+        create("gefilte") {
+            dimension = "policy"
+            applicationId = "io.github.theonionsarewatching.gefilte"
+            resValue("string", "app_name", "D-Mail Max")
         }
     }
 

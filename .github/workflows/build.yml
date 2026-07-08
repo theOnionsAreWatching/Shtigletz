@@ -73,6 +73,7 @@ jobs:
           cp app/build/outputs/apk/kosher/release/*.apk "out/D-Mail-Kosher-${GITHUB_REF_NAME}.apk"
           cp app/build/outputs/apk/plus/release/*.apk   "out/D-Mail-Plus-${GITHUB_REF_NAME}.apk"
           cp app/build/outputs/apk/pro/release/*.apk    "out/D-Mail-Pro-${GITHUB_REF_NAME}.apk"
+          cp app/build/outputs/apk/gefilte/release/*.apk "out/D-Mail-Max-${GITHUB_REF_NAME}.apk"
 
       - name: Upload release APKs (Actions artifact)
         if: steps.signing.outputs.enabled == 'true'

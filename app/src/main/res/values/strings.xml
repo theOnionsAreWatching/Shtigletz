@@ -222,7 +222,6 @@
     <string name="view_text">Text only</string>
     <string name="view_textimg">Text + images (tap to load)</string>
     <string name="view_html">Original HTML</string>
-    <string name="softkey_view">View</string>
     <string name="read_meta_pro_fmt">%1$s · %2$s — tap to change view</string>
     <plurals name="images_load_all_fmt">
         <item quantity="one">🖼 %d image — tap to load</item>
@@ -234,4 +233,17 @@
     <string name="images_loading">Loading image(s)…</string>
     <string name="images_failed">Image could not be loaded.</string>
     <string name="images_some_failed">Some images could not be loaded.</string>
+
+    <!-- v0.7.1 -->
+    <string name="setup_note_plus">Reading is text-only — no images, ever. File attachments can be saved, opened, and sent.</string>
+    <string name="setup_note_pro">Text-first reading. Images and attachments load only when you ask — nothing loads by itself.</string>
+    <string name="softkey_offer_title">Soft keys</string>
+    <string name="softkey_offer_msg">This phone isn\'t in the built-in soft-key list. Set up your left/right soft keys now? You can always do it later in Settings → Soft keys.</string>
+    <string name="softkey_offer_setup">Set up</string>
+    <string name="softkey_offer_skip">Skip</string>
+    <string name="softkey_html">HTML</string>
+    <string name="softkey_text">Text</string>
+    <string name="attach_source_title">Attach from</string>
+    <string name="attach_source_system">System file picker</string>
+    <string name="attach_source_apps">Choose an app…</string>
 </resources>

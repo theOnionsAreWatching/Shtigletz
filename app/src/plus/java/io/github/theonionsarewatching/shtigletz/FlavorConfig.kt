@@ -6,4 +6,5 @@ object FlavorConfig {
     const val NAME = "plus"
     const val ATTACHMENTS = true
     const val IMAGES = false
+    const val WEBVIEW_IMAGES = false
 }

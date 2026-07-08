@@ -77,6 +77,32 @@ object SoftKeys {
     }
 
     /**
+     * One-time first-launch offer: if this device has no bundled profile and
+     * the user hasn't configured anything, ask once whether to set up soft
+     * keys — with a Skip that never asks again. Devices with a bundled
+     * profile (or an existing custom setup) are never prompted.
+     */
+    fun maybeOfferSetup(activity: android.app.Activity) {
+        val p = prefs(activity)
+        if (p.getBoolean("softkeyOffered", false)) return
+        p.edit().putBoolean("softkeyOffered", true).apply()
+        if (mode(activity) != "auto" || resolve(activity) != null) return
+        androidx.appcompat.app.AlertDialog.Builder(activity)
+            .setTitle(R.string.softkey_offer_title)
+            .setMessage(R.string.softkey_offer_msg)
+            .setPositiveButton(R.string.softkey_offer_setup) { _, _ ->
+                activity.startActivity(
+                    android.content.Intent(
+                        activity,
+                        io.github.theonionsarewatching.shtigletz.ui.SoftKeyLearnActivity::class.java
+                    )
+                )
+            }
+            .setNegativeButton(R.string.softkey_offer_skip, null)
+            .show()
+    }
+
+    /**
      * True for every standard Android key — these must keep their normal
      * behavior and can never be captured as a soft key. Capturable keys are
      * only: KEYCODE_SOFT_LEFT/RIGHT (1/2), F1–F12, and vendor-specific codes

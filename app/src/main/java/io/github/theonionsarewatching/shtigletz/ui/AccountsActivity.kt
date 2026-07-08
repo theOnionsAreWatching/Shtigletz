@@ -31,6 +31,7 @@ class AccountsActivity : SoftKeyActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_accounts)
+        io.github.theonionsarewatching.shtigletz.input.SoftKeys.maybeOfferSetup(this)
         val list = findViewById<RecyclerView>(R.id.accountList)
         list.layoutManager = LinearLayoutManager(this)
         adapter = Adapter()

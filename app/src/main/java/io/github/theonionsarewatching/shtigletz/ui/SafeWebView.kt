@@ -40,6 +40,12 @@ class SafeWebView @JvmOverloads constructor(
 
     enum class RenderMode { TEXT, TEXT_IMG, HTML }
 
+    companion object {
+        /** Sentinel "loaded image" value meaning: render the ORIGINAL remote
+         *  URL and let the WebView fetch it natively (D-Mail Max only). */
+        const val NET_MARK = "@net"
+    }
+
     /** Tapped element href: "http…", "mailto:…", "tel:…", or "dimg:<n>". */
     var onLinkClicked: ((String) -> Unit)? = null
 
@@ -118,7 +124,7 @@ class SafeWebView @JvmOverloads constructor(
         lockNetwork()
         settings.textZoom = (Settings.textScale(context) * 100).toInt()
         setBackgroundColor(if (isNight()) Color.parseColor("#121212") else Color.WHITE)
-        val doc = "<html><head>$headMeta<style>${baseCss()}</style></head>" +
+        val doc = "<html><head>${headMeta(false)}<style>${baseCss()}</style></head>" +
                 "<body><i>${escape(text)}</i></body></html>"
         loadDataWithBaseURL(null, doc, "text/html", "utf-8", null)
     }
@@ -147,9 +153,20 @@ class SafeWebView @JvmOverloads constructor(
         // Pro user explicitly loaded images in HTML mode.
         lockNetwork()
         if (effMode != RenderMode.TEXT) {
+            // data: URIs are not "network images", but some OEM WebViews get
+            // this wrong — blockNetworkImage stays off whenever images are
+            // expected. The network itself remains dead via blockNetworkLoads
+            // + the interceptor unless explicitly opened below.
             settings.loadsImagesAutomatically = true
+            settings.blockNetworkImage = false
         }
-        if (effMode == RenderMode.HTML && networkImages && FlavorConfig.IMAGES) {
+
+        // Native WebView image loading: HTML mode after "Load images", or
+        // D-Mail Max TEXT_IMG once the user loaded a remote image.
+        val netHtml = effMode == RenderMode.HTML && networkImages && FlavorConfig.IMAGES
+        val netTextImg = effMode == RenderMode.TEXT_IMG && FlavorConfig.WEBVIEW_IMAGES &&
+                loadedImages.containsValue(NET_MARK)
+        if (netHtml || netTextImg) {
             allowNetwork = true
             settings.blockNetworkLoads = false
             settings.blockNetworkImage = false
@@ -163,7 +180,10 @@ class SafeWebView @JvmOverloads constructor(
             }
             else -> {
                 setBackgroundColor(if (isNight()) Color.parseColor("#121212") else Color.WHITE)
-                buildTextDoc(plain, html, showLinks, effMode == RenderMode.TEXT_IMG, imageSrcs, loadedImages)
+                buildTextDoc(
+                    plain, html, showLinks, effMode == RenderMode.TEXT_IMG,
+                    imageSrcs, loadedImages, allowNetImg = netTextImg
+                )
             }
         }
         loadDataWithBaseURL(null, doc, "text/html", "utf-8", null)
@@ -172,10 +192,12 @@ class SafeWebView @JvmOverloads constructor(
 
     // ---- Documents ----
 
-    private val headMeta =
-        "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'\">" +
+    private fun headMeta(allowNetImg: Boolean): String {
+        val img = if (allowNetImg) "data: http: https:" else "data:"
+        return "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src $img; style-src 'unsafe-inline'\">" +
                 "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
                 "<meta name=\"color-scheme\" content=\"light dark\">"
+    }
 
     private val htmlHeadMeta =
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" +
@@ -198,7 +220,8 @@ class SafeWebView @JvmOverloads constructor(
         showLinks: Boolean,
         withImages: Boolean,
         imageSrcs: MutableList<String>,
-        loadedImages: Map<Int, String>
+        loadedImages: Map<Int, String>,
+        allowNetImg: Boolean = false
     ): String {
         val targets = ArrayList<Target>()
         val text = when {
@@ -210,7 +233,7 @@ class SafeWebView @JvmOverloads constructor(
         val body =
             if (text.isNullOrBlank() && targets.isEmpty()) "<i>(empty message)</i>"
             else "<pre>${renderText(text ?: "", showLinks, Settings.tapContacts(context), targets, loadedImages)}</pre>"
-        return "<html><head>$headMeta<style>${baseCss()}</style></head><body>$body</body></html>"
+        return "<html><head>${headMeta(allowNetImg)}<style>${baseCss()}</style></head><body>$body</body></html>"
     }
 
     /** Pro HTML mode: sanitized original markup; cid: images substituted with data URIs. */
@@ -232,7 +255,8 @@ class SafeWebView @JvmOverloads constructor(
     private data class Target(
         val href: String,
         val label: String,
-        val imageIndex: Int = -1
+        val imageIndex: Int = -1,
+        val srcUrl: String = ""
     )
 
     private val urlRegex = Regex("""(?i)\b((?:https?://|www\.)[^\s<>"']+)""")
@@ -255,7 +279,7 @@ class SafeWebView @JvmOverloads constructor(
                 if (src.isBlank() || src.startsWith("data:", true)) "" else {
                     val idx = imageSrcs.size
                     imageSrcs.add(src)
-                    targets.add(Target("dimg:$idx", "[image]", imageIndex = idx))
+                    targets.add(Target("dimg:$idx", "[image]", imageIndex = idx, srcUrl = src))
                     " ${token(targets.size - 1)} "
                 }
             }
@@ -318,10 +342,10 @@ class SafeWebView @JvmOverloads constructor(
         return Regex("\u0002(\\d+)\u0003").replace(out) { m ->
             val t = targets[m.groupValues[1].toInt()]
             val data = if (t.imageIndex >= 0) loadedImages[t.imageIndex] else null
-            if (data != null) {
-                "<img src=\"${attr(data)}\"/>"
-            } else {
-                "<a href=\"${attr(t.href)}\">${escape(t.label)}</a>"
+            when {
+                data == NET_MARK -> "<img src=\"${attr(t.srcUrl)}\"/>"
+                data != null -> "<img src=\"${attr(data)}\"/>"
+                else -> "<a href=\"${attr(t.href)}\">${escape(t.label)}</a>"
             }
         }
     }
