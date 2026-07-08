@@ -4,18 +4,20 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.github.theonionsarewatching.shtigletz.R
 import io.github.theonionsarewatching.shtigletz.mail.MailAccount
 import io.github.theonionsarewatching.shtigletz.mail.SmtpService
-import io.github.theonionsarewatching.shtigletz.security.CredentialStore
+import io.github.theonionsarewatching.shtigletz.security.AccountStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ComposeActivity : BaseActivity() {
+class ComposeActivity : AppCompatActivity() {
 
     companion object {
+        const val EXTRA_ACCOUNT_ID = "accountId"
         const val EXTRA_TO = "to"
         const val EXTRA_SUBJECT = "subject"
         const val EXTRA_BODY = "body"
@@ -25,11 +27,13 @@ class ComposeActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val loaded = CredentialStore.load(this)
+        val loaded = AccountStore.get(this, intent.getStringExtra(EXTRA_ACCOUNT_ID))
+            ?: AccountStore.list(this).firstOrNull()
         if (loaded == null) { finish(); return }
         account = loaded
 
         setContentView(R.layout.activity_compose)
+        title = getString(R.string.compose_title_fmt, account.email)
         val to = findViewById<EditText>(R.id.composeTo)
         val cc = findViewById<EditText>(R.id.composeCc)
         val subject = findViewById<EditText>(R.id.composeSubject)

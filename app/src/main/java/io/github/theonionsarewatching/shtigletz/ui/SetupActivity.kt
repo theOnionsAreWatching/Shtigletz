@@ -8,19 +8,26 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.github.theonionsarewatching.shtigletz.R
 import io.github.theonionsarewatching.shtigletz.mail.ImapService
 import io.github.theonionsarewatching.shtigletz.mail.MailAccount
 import io.github.theonionsarewatching.shtigletz.mail.SmtpService
-import io.github.theonionsarewatching.shtigletz.security.CredentialStore
+import io.github.theonionsarewatching.shtigletz.security.AccountStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SetupActivity : BaseActivity() {
+/** Add a new account, or edit an existing one when EXTRA_ACCOUNT_ID is set. */
+class SetupActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_ACCOUNT_ID = "accountId"
+    }
 
     private lateinit var status: TextView
+    private var editingId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,8 +51,9 @@ class SetupActivity : BaseActivity() {
         imapSecurity.adapter = adapter
         smtpSecurity.adapter = adapter
 
-        // Prefill existing account for editing.
-        CredentialStore.load(this)?.let { a ->
+        // Edit mode: prefill the selected account.
+        editingId = intent.getStringExtra(EXTRA_ACCOUNT_ID)
+        AccountStore.get(this, editingId)?.let { a ->
             displayName.setText(a.displayName)
             email.setText(a.email)
             password.setText(a.password)
@@ -59,6 +67,7 @@ class SetupActivity : BaseActivity() {
 
         saveButton.setOnClickListener {
             val account = MailAccount(
+                id = editingId ?: AccountStore.newId(),
                 displayName = displayName.text.toString().trim(),
                 email = email.text.toString().trim(),
                 password = password.text.toString(),
@@ -95,8 +104,14 @@ class SetupActivity : BaseActivity() {
             }
             saveButton.isEnabled = true
             if (error == null) {
-                CredentialStore.save(this@SetupActivity, account)
-                startActivity(Intent(this@SetupActivity, InboxActivity::class.java))
+                AccountStore.save(this@SetupActivity, account)
+                if (isTaskRoot) {
+                    // First run: go straight into the new account's inbox.
+                    startActivity(
+                        Intent(this@SetupActivity, MessageListActivity::class.java)
+                            .putExtra(MessageListActivity.EXTRA_ACCOUNT_ID, account.id)
+                    )
+                }
                 finish()
             } else {
                 showStatus(getString(R.string.setup_failed, error))

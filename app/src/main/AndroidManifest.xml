@@ -22,12 +22,13 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.AccountsActivity" android:exported="false" />
         <activity android:name=".ui.SetupActivity" android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".ui.InboxActivity" android:exported="false" />
+        <activity android:name=".ui.MessageListActivity" android:exported="false" />
         <activity android:name=".ui.ReadActivity" android:exported="false" />
         <activity android:name=".ui.ComposeActivity" android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-        <activity android:name=".ui.CalibrationActivity" android:exported="false" />
+        <activity android:name=".ui.SettingsActivity" android:exported="false" />
     </application>
 </manifest>

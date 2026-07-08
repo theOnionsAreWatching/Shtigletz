@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import io.github.theonionsarewatching.shtigletz.R
 import io.github.theonionsarewatching.shtigletz.contacts.ContactPhotos
-import io.github.theonionsarewatching.shtigletz.mail.ImapService
+import io.github.theonionsarewatching.shtigletz.db.MailDb
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,28 +20,31 @@ import java.util.Locale
 
 class MessageAdapter(
     private val scope: CoroutineScope,
-    private val onOpen: (position: Int) -> Unit
+    private val onOpen: (position: Int) -> Unit,
+    private val onLongPress: (position: Int) -> Unit
 ) : RecyclerView.Adapter<MessageAdapter.Holder>() {
 
-    private val items = ArrayList<ImapService.Envelope>()
+    private val items = ArrayList<MailDb.CachedMessage>()
     private val dateFmt = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
 
-    fun submit(list: List<ImapService.Envelope>) {
+    fun submit(list: List<MailDb.CachedMessage>) {
         items.clear()
         items.addAll(list)
         notifyDataSetChanged()
     }
 
-    fun getItem(position: Int): ImapService.Envelope? = items.getOrNull(position)
+    fun getItem(position: Int): MailDb.CachedMessage? = items.getOrNull(position)
 
     fun uidList(): LongArray = LongArray(items.size) { items[it].uid }
 
     class Holder(v: View) : RecyclerView.ViewHolder(v) {
+        val unreadDot: View = v.findViewById(R.id.unreadDot)
         val avatar: ImageView = v.findViewById(R.id.avatar)
         val monogram: TextView = v.findViewById(R.id.monogram)
         val from: TextView = v.findViewById(R.id.fromText)
         val subject: TextView = v.findViewById(R.id.subjectText)
         val date: TextView = v.findViewById(R.id.dateText)
+        val star: TextView = v.findViewById(R.id.starFlag)
         val attachment: TextView = v.findViewById(R.id.attachmentFlag)
     }
 
@@ -58,14 +61,24 @@ class MessageAdapter(
         holder.from.text = e.fromName
         holder.subject.text = e.subject
         holder.date.text = if (e.dateMillis > 0) dateFmt.format(Date(e.dateMillis)) else ""
+
+        // Unread must be unmistakable: dot + bold + full brightness.
+        // Read rows are clearly dimmed.
+        holder.unreadDot.visibility = if (e.seen) View.INVISIBLE else View.VISIBLE
         val style = if (e.seen) Typeface.NORMAL else Typeface.BOLD
         holder.from.setTypeface(null, style)
         holder.subject.setTypeface(null, style)
+        val alpha = if (e.seen) 0.55f else 1f
+        holder.from.alpha = alpha
+        holder.subject.alpha = alpha
+        holder.date.alpha = alpha
+
+        holder.star.visibility = if (e.flagged) View.VISIBLE else View.GONE
         // Indicator only: the attachment itself is never downloaded.
         holder.attachment.visibility = if (e.hasAttachment) View.VISIBLE else View.GONE
 
         // Avatar: local contact photo or monogram. The only image source in the app.
-        holder.monogram.text = e.fromName.trim().firstOrNull()?.uppercase() ?: "?"
+        holder.monogram.text = (e.fromName.trim().firstOrNull()?.uppercase() ?: "?")
         holder.monogram.visibility = View.VISIBLE
         holder.avatar.setImageBitmap(null)
         val email = e.fromEmail
@@ -81,6 +94,12 @@ class MessageAdapter(
         holder.itemView.setOnClickListener {
             val pos = holder.bindingAdapterPosition
             if (pos != RecyclerView.NO_POSITION) onOpen(pos)
+        }
+        // Long-press (touch, or hold SELECT on a dpad) opens the actions menu.
+        holder.itemView.setOnLongClickListener {
+            val pos = holder.bindingAdapterPosition
+            if (pos != RecyclerView.NO_POSITION) onLongPress(pos)
+            true
         }
     }
 }

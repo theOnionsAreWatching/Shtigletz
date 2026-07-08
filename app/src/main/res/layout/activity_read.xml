@@ -28,6 +28,9 @@
         <Button android:id="@+id/replyButton" style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:text="@string/read_reply" />
+        <Button android:id="@+id/forwardButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/read_forward" />
         <Button android:id="@+id/deleteButton" style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:text="@string/read_delete" />
