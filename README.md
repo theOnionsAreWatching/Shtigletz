@@ -1,9 +1,8 @@
 # D-Mail
 
-A kosher-friendly, dpad-navigable email client for Android. Built for
-sideloading — no Play Store, no Google services required.
+A kosher-friendly, dpad-navigable email client for Android.
 
-## The two guarantees (compiled in, no toggles)
+## Kosher Features
 
 1. **Attachments are never downloaded.** The IMAP layer fetches only
    `text/plain` and `text/html` parts. Every other MIME part is counted and
@@ -15,10 +14,8 @@ sideloading — no Play Store, no Google services required.
    pixels are all dead. The only images anywhere in the app are contact
    photos already stored on the phone.
 
-The enforcement lives in two files — `mail/BodyExtractor.kt` and
-`ui/SafeWebView.kt`. **Do not weaken them.** Everything else can change.
 
-## Features (v0.6)
+## Other Features (v0.6)
 
 - **Multiple accounts.** Add as many IMAP/SMTP accounts as you like. With
   more than one account, the app opens to an account picker showing each
@@ -91,36 +88,15 @@ The enforcement lives in two files — `mail/BodyExtractor.kt` and
 ## Navigation
 
 Standard Android keys throughout — dpad/arrow keys move focus, SELECT/ENTER
-opens, long-press SELECT opens the actions menu, BACK goes up. There is no
-key-remapping layer (the v0.1 calibration screen is gone). Works with touch,
+opens, long-press SELECT opens the actions menu, BACK goes up. Works with touch,
 dpad, or both.
-
-## Building
-
-CI builds on every push via GitHub Actions (`.github/workflows/build.yml`):
-
-- Always: unsigned **debug APK** artifact, installable immediately.
-- If signing secrets are configured: a signed **release APK** too.
-
-Signing secrets (Settings → Secrets and variables → Actions):
-
-| Secret | Value |
-| --- | --- |
-| `KEYSTORE_BASE64` | `base64 -w0 your.keystore` |
-| `KEYSTORE_PASSWORD` | keystore password |
-| `KEY_ALIAS` | key alias |
-| `KEY_PASSWORD` | key password |
-
-Local build: `./gradlew assembleDebug` with JDK 17 and the Android SDK
-(compileSdk 34) installed.
 
 ## Setup on the phone
 
-1. Sideload the APK (enable "Install unknown apps" for your file manager).
-2. Enter IMAP/SMTP details. For Gmail-hosted mail use an **app password**
+1. Enter IMAP/SMTP details. For Gmail-hosted mail use an **app password**
    (`imap.gmail.com:993 SSL`, `smtp.gmail.com:465 SSL`). Any standard
    IMAP/SMTP provider works.
-3. Add more accounts anytime: Accounts screen → **Add account** (from the
+2. Add more accounts anytime: Accounts screen → **Add account** (from the
    inbox: More → Accounts).
 
 ## Storage & privacy
