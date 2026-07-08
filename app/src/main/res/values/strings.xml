@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">D-Mail</string>
+
+    <!-- Setup -->
+    <string name="setup_title">Account setup</string>
+    <string name="hint_display_name">Display name</string>
+    <string name="hint_email">Email address (username)</string>
+    <string name="hint_password">Password / app password</string>
+    <string name="hint_imap_host">IMAP host (e.g. imap.example.com)</string>
+    <string name="hint_imap_port">IMAP port</string>
+    <string name="hint_smtp_host">SMTP host (e.g. smtp.example.com)</string>
+    <string name="hint_smtp_port">SMTP port</string>
+    <string name="security_ssl">SSL/TLS</string>
+    <string name="security_starttls">STARTTLS</string>
+    <string name="setup_save">Test &amp; save</string>
+    <string name="setup_testing">Testing connection…</string>
+    <string name="setup_failed">Connection failed: %1$s</string>
+    <string name="setup_missing_fields">Please fill in email, password, IMAP host and SMTP host.</string>
+    <string name="setup_note">Attachments are never downloaded and remote images never load. This is built in.</string>
+
+    <!-- Accounts -->
+    <string name="accounts_title">Accounts</string>
+    <string name="add_account">Add account</string>
+    <string name="settings">Settings</string>
+    <string name="account_edit">Edit account</string>
+    <string name="account_remove">Remove account</string>
+    <string name="confirm_remove_account">Remove %1$s and its cached mail from this phone?</string>
+    <plurals name="unread_count">
+        <item quantity="one">%d unread</item>
+        <item quantity="other">%d unread</item>
+    </plurals>
+
+    <!-- Message list -->
+    <string name="list_title_fmt">%1$s · %2$s</string>
+    <string name="list_compose">Compose</string>
+    <string name="list_refresh">Refresh</string>
+    <string name="list_folders">Folders</string>
+    <string name="list_more">More</string>
+    <string name="list_load_older">Load older messages</string>
+    <string name="list_loading">Loading…</string>
+    <string name="list_empty">No messages.</string>
+    <string name="list_error">Could not load: %1$s</string>
+    <string name="list_offline_cached">Offline — showing saved messages.</string>
+    <string name="menu_accounts">Accounts</string>
+    <string name="menu_settings">Settings</string>
+    <string name="attachment_blocked_flag">⊘📎</string>
+    <string name="star_flag">★</string>
+
+    <!-- Message actions -->
+    <string name="action_mark_read">Mark read</string>
+    <string name="action_mark_unread">Mark unread</string>
+    <string name="action_star">Star</string>
+    <string name="action_unstar">Unstar</string>
+    <string name="action_reply">Reply</string>
+    <string name="action_forward">Forward</string>
+    <string name="action_move">Move to folder…</string>
+    <string name="action_trash">Move to Trash</string>
+    <string name="action_delete_perm">Delete permanently</string>
+    <string name="action_failed">Action failed (offline?).</string>
+    <string name="confirm_delete_perm">Delete this message permanently? (No Trash folder found.)</string>
+    <string name="deleted">Deleted.</string>
+    <string name="moved_fmt">Moved to %1$s.</string>
+
+    <!-- Folders -->
+    <string name="folders_title">Folders</string>
+    <string name="folders_loading">Loading folders…</string>
+    <string name="folders_error">Could not load folders.</string>
+
+    <!-- Read -->
+    <string name="read_loading">Loading…</string>
+    <string name="read_offline">Offline — this message\'s text isn\'t saved yet. Refresh while online to save it.</string>
+    <string name="read_meta_blocked">%1$s — %2$d attachment/remote part(s) not downloaded</string>
+    <string name="read_no_more">No more messages.</string>
+    <string name="read_reply">Reply</string>
+    <string name="read_forward">Fwd</string>
+    <string name="read_delete">Del</string>
+    <string name="read_prev">◀</string>
+    <string name="read_next">▶</string>
+    <string name="forward_header">---------- Forwarded message ----------\nFrom: %1$s &lt;%2$s&gt;\nSubject: %3$s</string>
+
+    <!-- Links -->
+    <string name="link_dialog_title">Link</string>
+    <string name="link_copy">Copy</string>
+    <string name="link_close">Close</string>
+    <string name="link_copied">Link copied.</string>
+
+    <!-- Compose -->
+    <string name="compose_title_fmt">New message — %1$s</string>
+    <string name="hint_to">To</string>
+    <string name="hint_cc">Cc (optional)</string>
+    <string name="hint_subject">Subject</string>
+    <string name="hint_body">Message</string>
+    <string name="compose_send">Send</string>
+    <string name="compose_sent">Sent.</string>
+    <string name="compose_failed">Send failed: %1$s</string>
+    <string name="compose_missing_to">Please enter a recipient.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_page_size">Emails to load per page</string>
+    <string name="settings_auto_refresh">Auto refresh</string>
+    <string name="settings_links">Links in messages</string>
+    <string name="settings_links_show">Show as tappable [link]</string>
+    <string name="settings_links_hide">Hide links completely</string>
+    <string name="settings_prefetch">Save newest messages for offline</string>
+    <string name="settings_off">Off</string>
+    <string name="settings_minutes">Every %1$d min</string>
+    <string name="settings_newest">Newest %1$d</string>
+</resources>

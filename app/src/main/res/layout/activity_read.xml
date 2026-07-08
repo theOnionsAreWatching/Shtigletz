@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView android:id="@+id/readFrom"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="8dp"
+        android:textStyle="bold" android:textSize="16sp"
+        android:singleLine="true" android:ellipsize="end" />
+
+    <TextView android:id="@+id/readSubject"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingStart="10dp" android:paddingEnd="10dp"
+        android:textSize="15sp" android:maxLines="2" android:ellipsize="end" />
+
+    <TextView android:id="@+id/readMeta"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingBottom="4dp"
+        android:textSize="12sp" android:alpha="0.7" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/replyButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/read_reply" />
+        <Button android:id="@+id/forwardButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/read_forward" />
+        <Button android:id="@+id/deleteButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/read_delete" />
+        <Button android:id="@+id/prevButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/read_prev" />
+        <Button android:id="@+id/nextButton" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/read_next" />
+    </LinearLayout>
+
+    <io.github.theonionsarewatching.shtigletz.ui.SafeWebView
+        android:id="@+id/bodyView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

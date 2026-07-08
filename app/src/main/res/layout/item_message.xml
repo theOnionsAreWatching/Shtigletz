@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical"
+    android:focusable="true"
+    android:clickable="true"
+    android:longClickable="true"
+    android:background="@drawable/focus_bg">
+
+    <View android:id="@+id/unreadDot"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_marginEnd="6dp"
+        android:background="@drawable/unread_dot" />
+
+    <FrameLayout
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginEnd="10dp">
+
+        <TextView android:id="@+id/monogram"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:background="@drawable/avatar_bg"
+            android:gravity="center"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageView android:id="@+id/avatar"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@null" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView android:id="@+id/fromText"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:singleLine="true" android:ellipsize="end" android:textSize="16sp" />
+
+        <TextView android:id="@+id/subjectText"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:singleLine="true" android:ellipsize="end" android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <TextView android:id="@+id/dateText"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView android:id="@+id/starFlag"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@string/star_flag"
+                android:textColor="#F5B301"
+                android:textSize="12sp" android:visibility="gone" />
+
+            <TextView android:id="@+id/attachmentFlag"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/attachment_blocked_flag"
+                android:textSize="12sp" android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
