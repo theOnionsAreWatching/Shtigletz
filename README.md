@@ -18,7 +18,7 @@ sideloading — no Play Store, no Google services required.
 The enforcement lives in two files — `mail/BodyExtractor.kt` and
 `ui/SafeWebView.kt`. **Do not weaken them.** Everything else can change.
 
-## Features (v0.5)
+## Features (v0.6)
 
 - **Multiple accounts.** Add as many IMAP/SMTP accounts as you like. With
   more than one account, the app opens to an account picker showing each
@@ -35,10 +35,18 @@ The enforcement lives in two files — `mail/BodyExtractor.kt` and
   "Load older messages" pages further back.
 - **Obvious read/unread.** Unread = accent dot + bold + full brightness.
   Read = dimmed. Starred messages show a gold ★.
-- **Link policy.** Raw URLs never appear in a message body (no more walls of
-  link text). Depending on Settings, links show as a tappable **[link]** —
-  tapping shows the URL as text with a Copy button (never navigates, never
-  loads anything) — or are stripped entirely.
+- **Pure-text rendering.** Emails are never rendered as HTML: bodies are
+  converted to plain text in the app's own light/dark theme — no colors, no
+  backgrounds, no buttons, no layout tricks, ever. The only interactive
+  elements are ones the app itself creates:
+- **Link policy.** Raw URLs never appear in a message body. Depending on
+  Settings, links show as a tappable **[link]** — tapping shows the URL as
+  text with a Copy button (never navigates, never loads anything) — or are
+  stripped entirely. Named links keep their text label with [link] after it.
+- **Tap-to-copy contacts (optional, on by default).** Email addresses and
+  phone numbers in a message are tappable: a dialog shows the value with
+  Copy, plus Compose (for emails) or Dial (for phone numbers — opens the
+  dialer, never places a call).
 - **Long-press actions.** Long-press a message (touch, or hold SELECT on a
   dpad) for: mark read/unread, star/unstar, reply, forward, move to
   folder…, move to Trash, delete permanently. Long-press an account to edit
