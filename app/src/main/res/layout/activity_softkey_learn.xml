@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="@string/learn_title"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:paddingBottom="12dp" />
+
+    <TextView android:id="@+id/learnPrompt"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textSize="17sp" android:textStyle="bold"
+        android:gravity="center" android:paddingBottom="10dp" />
+
+    <TextView android:id="@+id/learnCaptured"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center" android:paddingBottom="10dp" />
+
+    <TextView android:id="@+id/learnHint"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center" android:textSize="13sp" android:alpha="0.75"
+        android:paddingBottom="16dp" />
+
+    <Button android:id="@+id/learnSave" style="@style/DMail.Button"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="@string/learn_save" />
+
+    <TextView
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="@string/learn_note"
+        android:textSize="12sp" android:alpha="0.7" android:paddingTop="16dp" />
+</LinearLayout>
