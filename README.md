@@ -1,9 +1,12 @@
 # D-Mail
 
-A kosher-friendly, dpad-navigable email client for Android.
+A kosher-friendly, dpad-navigable email client for Android. Built for
+sideloading — no Play Store, no Google services required.
 
-## Four apps
+## Four apps, one codebase
 
+The same app is published in four editions. They install side by side —
+each has its own name, accounts, and cache.
 
 | App | Package | Attachments | Images |
 | --- | --- | --- | --- |
@@ -21,8 +24,12 @@ itself and embeds it in the page; Max lets the built-in browser engine load
 approved images directly — try Max if images don't appear on your device in
 Pro. Nothing ever loads without a tap in either app.
 
+**Install**: download the APK for the flavor you want from the
+[Releases page](../../releases), sideload it (allow "Install unknown apps"
+for your file manager), and sign in. The apps are independent — you can
+install several side by side, each with its own accounts.
 
-## Kosher Features
+## The Kosher guarantees (compiled in per flavor, no toggles)
 
 In **D-Mail Kosher** (and, for rendering, in Plus):
 
@@ -38,6 +45,11 @@ In **D-Mail Kosher** (and, for rendering, in Plus):
    pixels are all dead. In Pro, images load **only** after an explicit
    "load images" action; nothing ever loads automatically in any flavor.
 
+The enforcement lives in `mail/BodyExtractor.kt` and `ui/SafeWebView.kt`,
+gated on each flavor's compile-time `FlavorConfig`. In the Kosher build the
+capability constants are `false`, so no code path can fetch a non-text part
+or reach the network. **Do not weaken these files.**
+
 ## Plus / Pro / Max features
 
 - **Attachments line at the top of the message** (no scrolling to the
@@ -48,6 +60,9 @@ In **D-Mail Kosher** (and, for rendering, in Plus):
   20 MB total). Tap the attached line to remove one.
 - **Share target.** In a file manager, Share → D-Mail Plus/Pro opens a
   compose screen with the file attached.
+- **Pro & Max: auto-load rules.** Tap the images line for options: load
+  now, always load from this sender, always load from everyone, or always
+  open this sender in full HTML. Reset the per-sender rules in Settings.
 - **Pro & Max: three view modes.** The right soft key jumps between HTML
   and text; tapping the date line cycles all three. Default mode set in
   Settings.
@@ -99,6 +114,14 @@ In **D-Mail Kosher** (and, for rendering, in Plus):
   **not** mark it read.
 - **Dates follow the system.** 12/24-hour format matches the phone's
   setting; messages older than a year show the year instead of the time.
+- **Reading background & font.** Pick a background color (cream, mint,
+  black, navy, …) and font (sans-serif / serif / monospace) for reading.
+  Applies to text views; full-HTML mode keeps the email's own look.
+- **In-app updates.** Settings → Check for updates fetches the latest
+  release and can download and install it directly.
+- **Clean sending.** Outgoing mail uses your plain email address in the
+  From line — the display name you set in the app is only shown inside the
+  app. (A mismatched From name is a common reason mail lands in spam.)
 - **Material 3 UI**, light/dark/system theme, no wasted title bar. Dpad focus
   is always visible: focused rows get a rounded accent outline, focused
   buttons get an accent stroke.
@@ -126,7 +149,8 @@ In **D-Mail Kosher** (and, for rendering, in Plus):
 - **Soft keys (optional).** Small action labels above the phone's left/right
   soft keys, different per screen (list: Compose/Folders, reader: Reply/Mark read-unread,
   accounts: Add/Settings, compose: Send). Off unless the device model is in
-  `res/xml/softkey_profiles.xml` or the user teaches their keys via Settings → Soft keys →
+  `res/xml/softkey_profiles.xml` (dummy entries for now — add real models as
+  collected) or the user teaches their keys via Settings → Soft keys →
   Custom. The learn screen refuses every standard key (dpad, numbers,
   letters, volume, Back…) so normal keys can never be hijacked.
 
@@ -137,13 +161,18 @@ opens, long-press SELECT opens the actions menu, BACK goes up. There is no
 key-remapping layer (the v0.1 calibration screen is gone). Works with touch,
 dpad, or both.
 
+## For developers
+
+Build/CI/signing docs live in [BUILDING.md](BUILDING.md).
+
 
 ## Setup on the phone
 
-1. Enter IMAP/SMTP details. For Gmail-hosted mail use an **app password**
+1. Sideload the APK (enable "Install unknown apps" for your file manager).
+2. Enter IMAP/SMTP details. For Gmail-hosted mail use an **app password**
    (`imap.gmail.com:993 SSL`, `smtp.gmail.com:465 SSL`). Any standard
    IMAP/SMTP provider works.
-2. Add more accounts anytime: Accounts screen → **Add account** (from the
+3. Add more accounts anytime: Accounts screen → **Add account** (from the
    inbox: More → Accounts).
 
 ## Storage & privacy

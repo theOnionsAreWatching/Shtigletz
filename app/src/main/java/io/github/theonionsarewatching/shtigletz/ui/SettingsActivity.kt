@@ -13,7 +13,11 @@ import android.os.Build
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import io.github.theonionsarewatching.shtigletz.FlavorConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import io.github.theonionsarewatching.shtigletz.R
 import io.github.theonionsarewatching.shtigletz.Settings
 import io.github.theonionsarewatching.shtigletz.input.SoftKeys
@@ -28,6 +32,12 @@ class SettingsActivity : SoftKeyActivity() {
     private val prefetchCounts = listOf(0, 10, 25, 50)
     private val textScales = listOf(0.7f, 0.85f, 1f, 1.15f, 1.3f, 1.5f)
     private val viewModes = listOf("text", "textimg", "html")
+    private val readBgs = listOf(
+        "default", "#FFFFFF", "#F5EFE0", "#EEEEEE", "#E7F2E7",
+        "#000000", "#1E1E1E", "#101828"
+    )
+    private val readFonts = listOf("sans", "serif", "mono")
+    private val imagesAutoVals = listOf("never", "always")
     private val themes = listOf("system", "light", "dark")
     private val softkeyModes = listOf("off", "auto", "custom")
     private val notifyModes = listOf("off", "all", "selected")
@@ -82,6 +92,26 @@ class SettingsActivity : SoftKeyActivity() {
         ) { Settings.setPageSize(this, pageSizes[it]) }
 
         bindSpinner(
+            R.id.readBgSpinner,
+            listOf(
+                getString(R.string.bg_default), getString(R.string.bg_white),
+                getString(R.string.bg_cream), getString(R.string.bg_gray),
+                getString(R.string.bg_mint), getString(R.string.bg_black),
+                getString(R.string.bg_dgray), getString(R.string.bg_navy)
+            ),
+            readBgs.indexOf(Settings.readBg(this)).coerceAtLeast(0)
+        ) { Settings.setReadBg(this, readBgs[it]) }
+
+        bindSpinner(
+            R.id.readFontSpinner,
+            listOf(
+                getString(R.string.font_sans), getString(R.string.font_serif),
+                getString(R.string.font_mono)
+            ),
+            readFonts.indexOf(Settings.readFont(this)).coerceAtLeast(0)
+        ) { Settings.setReadFont(this, readFonts[it]) }
+
+        bindSpinner(
             R.id.autoRefreshSpinner,
             refreshMinutes.map {
                 when (it) {
@@ -113,6 +143,19 @@ class SettingsActivity : SoftKeyActivity() {
                 ),
                 viewModes.indexOf(Settings.viewMode(this)).coerceAtLeast(0)
             ) { Settings.setViewMode(this, viewModes[it]) }
+
+            findViewById<View>(R.id.imagesAutoLabel).visibility = View.VISIBLE
+            findViewById<View>(R.id.imagesAutoSpinner).visibility = View.VISIBLE
+            findViewById<View>(R.id.resetSendersButton).visibility = View.VISIBLE
+            bindSpinner(
+                R.id.imagesAutoSpinner,
+                listOf(getString(R.string.images_auto_never), getString(R.string.images_auto_always)),
+                imagesAutoVals.indexOf(Settings.imagesAuto(this)).coerceAtLeast(0)
+            ) { Settings.setImagesAuto(this, imagesAutoVals[it]) }
+            findViewById<android.widget.Button>(R.id.resetSendersButton).setOnClickListener {
+                Settings.clearSenderRules(this)
+                Toast.makeText(this, R.string.senders_cleared, Toast.LENGTH_SHORT).show()
+            }
         }
 
         bindSpinner(
@@ -173,6 +216,20 @@ class SettingsActivity : SoftKeyActivity() {
             prefetchCounts.indexOf(Settings.prefetchBodies(this)).coerceAtLeast(0)
         ) { Settings.setPrefetchBodies(this, prefetchCounts[it]) }
 
+        val version = runCatching {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        }.getOrNull() ?: "?"
+        findViewById<android.widget.TextView>(R.id.versionText).text =
+            getString(R.string.version_fmt, version)
+        findViewById<android.widget.Button>(R.id.updateButton).setOnClickListener {
+            checkForUpdates(version)
+        }
+        bindSpinner(
+            R.id.deleteUpdateSpinner,
+            listOf(getString(R.string.settings_on), getString(R.string.settings_off_label)),
+            if (Settings.deleteUpdateApk(this)) 0 else 1
+        ) { Settings.setDeleteUpdateApk(this, it == 0) }
+
         findViewById<android.widget.Button>(R.id.keyInfoButton).setOnClickListener { openKeyInfo() }
         updateKeyInfoVisibility()
     }
@@ -222,6 +279,76 @@ class SettingsActivity : SoftKeyActivity() {
 
     private fun openKeyInfo() {
         startActivity(Intent(this, KeyInfoActivity::class.java))
+    }
+
+    private fun checkForUpdates(currentVersion: String) {
+        Toast.makeText(this, R.string.update_checking, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val latest = withContext(Dispatchers.IO) {
+                io.github.theonionsarewatching.shtigletz.update.UpdateChecker.fetchLatest()
+            }
+            when {
+                latest == null ->
+                    Toast.makeText(this@SettingsActivity, R.string.update_error, Toast.LENGTH_LONG).show()
+                !io.github.theonionsarewatching.shtigletz.update.UpdateChecker
+                    .isNewer(latest.tag, currentVersion) ->
+                    Toast.makeText(
+                        this@SettingsActivity,
+                        getString(R.string.update_uptodate, currentVersion), Toast.LENGTH_SHORT
+                    ).show()
+                else -> {
+                    val b = androidx.appcompat.app.AlertDialog.Builder(this@SettingsActivity)
+                        .setTitle(R.string.update_available_title)
+                        .setMessage(getString(R.string.update_available_msg, latest.tag, currentVersion))
+                        .setNegativeButton(android.R.string.cancel, null)
+                    if (latest.apkUrl != null) {
+                        b.setPositiveButton(R.string.update_download) { _, _ ->
+                            downloadAndInstall(latest.apkUrl)
+                        }
+                    }
+                    if (latest.htmlUrl.isNotBlank()) {
+                        b.setNeutralButton(R.string.update_open_page) { _, _ ->
+                            runCatching {
+                                startActivity(
+                                    android.content.Intent(
+                                        android.content.Intent.ACTION_VIEW,
+                                        android.net.Uri.parse(latest.htmlUrl)
+                                    )
+                                )
+                            }.onFailure {
+                                Toast.makeText(
+                                    this@SettingsActivity, R.string.update_error, Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                    b.show()
+                }
+            }
+        }
+    }
+
+    private fun downloadAndInstall(url: String) {
+        Toast.makeText(this, R.string.update_downloading, Toast.LENGTH_LONG).show()
+        lifecycleScope.launch {
+            val file = withContext(Dispatchers.IO) {
+                io.github.theonionsarewatching.shtigletz.update.UpdateChecker.downloadApk(
+                    this@SettingsActivity, url
+                )
+            }
+            if (file == null) {
+                Toast.makeText(this@SettingsActivity, R.string.update_failed, Toast.LENGTH_LONG).show()
+            } else {
+                runCatching {
+                    startActivity(
+                        io.github.theonionsarewatching.shtigletz.update.UpdateChecker
+                            .installIntent(this@SettingsActivity, file)
+                    )
+                }.onFailure {
+                    Toast.makeText(this@SettingsActivity, R.string.update_failed, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 
     private fun bindSpinner(id: Int, labels: List<String>, selected: Int, onPick: (Int) -> Unit) {

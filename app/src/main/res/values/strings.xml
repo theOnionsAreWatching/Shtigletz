@@ -246,4 +246,40 @@
     <string name="attach_source_title">Attach from</string>
     <string name="attach_source_system">System file picker</string>
     <string name="attach_source_apps">Choose an app…</string>
+
+    <!-- v0.8.0 -->
+    <string name="settings_read_bg">Reading background</string>
+    <string name="bg_default">System theme</string>
+    <string name="bg_white">White</string>
+    <string name="bg_cream">Cream</string>
+    <string name="bg_gray">Light gray</string>
+    <string name="bg_mint">Mint</string>
+    <string name="bg_black">Black</string>
+    <string name="bg_dgray">Dark gray</string>
+    <string name="bg_navy">Navy</string>
+    <string name="settings_read_font">Reading font</string>
+    <string name="font_sans">Sans-serif</string>
+    <string name="font_serif">Serif</string>
+    <string name="font_mono">Monospace</string>
+    <string name="settings_images_auto">Auto-load images</string>
+    <string name="images_auto_never">Never (tap each time)</string>
+    <string name="images_auto_always">Always</string>
+    <string name="settings_reset_senders">Reset per-sender image rules</string>
+    <string name="senders_cleared">Per-sender rules cleared.</string>
+    <string name="settings_check_updates">Check for updates</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_error">Couldn\'t check for updates.</string>
+    <string name="update_uptodate">You\'re up to date (v%1$s).</string>
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_msg">Version %1$s is available (you have v%2$s).</string>
+    <string name="update_download">Download &amp; install</string>
+    <string name="update_open_page">Open release page</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_failed">Update download failed.</string>
+    <string name="version_fmt">Version %1$s</string>
+    <string name="img_dialog_title">Images</string>
+    <string name="img_load_now">Load images now</string>
+    <string name="img_always_sender">Always load from %1$s</string>
+    <string name="img_html_sender">Always show %1$s in full HTML</string>
+    <string name="settings_delete_update">Delete update file after install</string>
 </resources>

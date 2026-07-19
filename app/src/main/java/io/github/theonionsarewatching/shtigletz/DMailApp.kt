@@ -9,5 +9,9 @@ class DMailApp : Application() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(Settings.nightMode(this))
         Notifier.init(this)
+        // Clean up a leftover update APK from a previous install (default on).
+        if (Settings.deleteUpdateApk(this)) {
+            runCatching { java.io.File(getExternalFilesDir(null), "update.apk").delete() }
+        }
     }
 }

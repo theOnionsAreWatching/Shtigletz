@@ -5,16 +5,6 @@
     <!-- Newsletter images are often plain http; allow cleartext for the
          user-invoked image fetches. Mail itself is SSL/STARTTLS regardless. -->
     <application android:usesCleartextTraffic="true">
-        <!-- Lets other apps read attachment files we hand off. -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
 
         <!-- Share target: "share" a file from a file manager -> compose with it attached. -->
         <activity

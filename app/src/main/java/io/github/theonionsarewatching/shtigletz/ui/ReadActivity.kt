@@ -103,6 +103,19 @@ class ReadActivity : SoftKeyActivity() {
         load()
     }
 
+    private fun sender(msg: MailDb.CachedMessage?): String =
+        msg?.fromEmail?.trim()?.lowercase() ?: ""
+
+    /** Per-sender view rule (Pro/Max), else the global default. Runs once per
+     *  message open — mode changes by hand are never overridden mid-message. */
+    private fun applyMessageDefaults(msg: MailDb.CachedMessage) {
+        if (!FlavorConfig.IMAGES) return
+        viewMode = if (sender(msg).isNotBlank() && Settings.htmlSenders(this).contains(sender(msg)))
+            SafeWebView.RenderMode.HTML else defaultViewMode()
+        lastNonHtmlMode =
+            if (viewMode == SafeWebView.RenderMode.HTML) SafeWebView.RenderMode.TEXT_IMG else viewMode
+    }
+
     private fun defaultViewMode(): SafeWebView.RenderMode = when (Settings.viewMode(this)) {
         "text" -> SafeWebView.RenderMode.TEXT
         "html" -> SafeWebView.RenderMode.HTML
@@ -124,6 +137,7 @@ class ReadActivity : SoftKeyActivity() {
         val cached = db.message(account.id, folder, uid)
 
         if (cached != null && cached.bodyFetched) {
+            applyMessageDefaults(cached)
             show(cached)
             if (!cached.seen) markSeen(uid)
             return
@@ -148,6 +162,7 @@ class ReadActivity : SoftKeyActivity() {
                 }
             }
             val msg = db.message(account.id, folder, uid)
+            if (msg != null) applyMessageDefaults(msg)
             if (result.isFailure || msg == null || !msg.bodyFetched) {
                 metaText.text = getString(R.string.read_offline)
                 msg?.let {
@@ -195,6 +210,22 @@ class ReadActivity : SoftKeyActivity() {
             networkImages = htmlImagesOn
         )
         updateImagesLine()
+        autoLoadIfWanted(msg)
+    }
+
+    /** "Always load" (global or this sender) kicks in right after render. */
+    private fun autoLoadIfWanted(msg: MailDb.CachedMessage) {
+        if (!FlavorConfig.IMAGES) return
+        val auto = Settings.imagesAuto(this) == "always" ||
+                (sender(msg).isNotBlank() && Settings.imagesSenders(this).contains(sender(msg)))
+        if (!auto) return
+        when (viewMode) {
+            SafeWebView.RenderMode.TEXT_IMG ->
+                if (imageSrcs.indices.any { it !in loadedImages }) loadAllImages(silent = true)
+            SafeWebView.RenderMode.HTML ->
+                if (!htmlImagesOn) enableHtmlImages(silent = true)
+            else -> {}
+        }
     }
 
     // ---- Attachments (Plus/Pro) ----
@@ -328,11 +359,40 @@ class ReadActivity : SoftKeyActivity() {
 
     private fun onImagesLine() {
         if (!FlavorConfig.IMAGES) return
-        when (viewMode) {
-            SafeWebView.RenderMode.TEXT_IMG -> loadAllImages()
-            SafeWebView.RenderMode.HTML -> enableHtmlImages()
-            else -> {}
+        val msg = current() ?: return
+        val who = sender(msg)
+        val items = ArrayList<Pair<String, () -> Unit>>()
+        val unloaded = when (viewMode) {
+            SafeWebView.RenderMode.TEXT_IMG -> imageSrcs.indices.any { it !in loadedImages }
+            SafeWebView.RenderMode.HTML -> !htmlImagesOn
+            else -> false
         }
+        if (unloaded) items.add(getString(R.string.img_load_now) to {
+            if (viewMode == SafeWebView.RenderMode.HTML) enableHtmlImages() else loadAllImages()
+        })
+        if (who.isNotBlank()) {
+            items.add(getString(R.string.img_always_sender, who) to {
+                Settings.addImagesSender(this, who)
+                if (viewMode == SafeWebView.RenderMode.HTML) enableHtmlImages(silent = true)
+                else loadAllImages(silent = true)
+            })
+        }
+        // "Always load from everyone" lives in Settings (Auto-load images),
+        // not here. The full-HTML sender rule is a Max-only offering.
+        if (FlavorConfig.WEBVIEW_IMAGES && who.isNotBlank() &&
+            !Settings.htmlSenders(this).contains(who)
+        ) {
+            items.add(getString(R.string.img_html_sender, who) to {
+                Settings.addHtmlSender(this, who)
+                if (viewMode != SafeWebView.RenderMode.HTML) toggleHtml()
+            })
+        }
+        if (items.isEmpty()) return
+        AlertDialog.Builder(this)
+            .setTitle(R.string.img_dialog_title)
+            .setItems(items.map { it.first }.toTypedArray()) { _, which -> items[which].second() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun fetchOneImage(src: String, uid: Long): String? {
@@ -364,12 +424,12 @@ class ReadActivity : SoftKeyActivity() {
         }
     }
 
-    private fun loadAllImages() {
+    private fun loadAllImages(silent: Boolean = false) {
         if (index !in uids.indices) return
         val uid = uids[index]
         val todo = imageSrcs.indices.filter { it !in loadedImages }
         if (todo.isEmpty()) return
-        Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show()
+        if (!silent) Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             var failures = 0
             withContext(Dispatchers.IO) {
@@ -386,13 +446,13 @@ class ReadActivity : SoftKeyActivity() {
     }
 
     /** HTML mode "Load images": fetch cid parts, then allow network images. */
-    private fun enableHtmlImages() {
+    private fun enableHtmlImages(silent: Boolean = false) {
         if (index !in uids.indices || htmlImagesOn) return
         val uid = uids[index]
         val html = current()?.bodyHtml ?: ""
         val cids = Regex("(?i)src\\s*=\\s*([\"'])cid:([^\"']+)\\1").findAll(html)
             .map { it.groupValues[2].trim() }.distinct().toList()
-        Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show()
+        if (!silent) Toast.makeText(this, R.string.images_loading, Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 for (cid in cids) {

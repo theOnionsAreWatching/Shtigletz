@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- New-mail notifications (optional feature, off by default). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Lets the in-app update check hand a downloaded APK to the installer. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:name=".DMailApp"
@@ -35,5 +37,17 @@
         <activity android:name=".ui.SettingsActivity" android:exported="false" />
         <activity android:name=".ui.SoftKeyLearnActivity" android:exported="false" />
         <activity android:name=".ui.KeyInfoActivity" android:exported="false" />
+
+        <!-- Shares files we explicitly grant: update APKs (all flavors) and
+             attachments (Plus/Pro/Max). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

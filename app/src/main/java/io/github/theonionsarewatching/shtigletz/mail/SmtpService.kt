@@ -56,7 +56,10 @@ class SmtpService(private val account: MailAccount) {
         attachments: List<Attachment> = emptyList()
     ) {
         val msg = MimeMessage(session())
-        msg.setFrom(InternetAddress(account.email, account.displayName.ifBlank { account.email }))
+        // The account's display name is for the APP's UI only. Outgoing mail
+        // uses the bare address: a From name that doesn't match the provider's
+        // records (e.g. the real Google account name) trips spam filters.
+        msg.setFrom(InternetAddress(account.email))
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to.trim()))
         if (cc.isNotBlank()) {
             msg.setRecipients(Message.RecipientType.CC, InternetAddress.parse(cc.trim()))

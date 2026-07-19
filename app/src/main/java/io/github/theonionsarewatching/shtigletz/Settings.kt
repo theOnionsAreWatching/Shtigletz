@@ -31,6 +31,43 @@ object Settings {
     fun sortUnreadFirst(ctx: Context): Boolean = p(ctx).getBoolean("sortUnreadFirst", false)
     fun setSortUnreadFirst(ctx: Context, v: Boolean) = p(ctx).edit().putBoolean("sortUnreadFirst", v).apply()
 
+    /** Reading background: "default" (follow theme) or a "#RRGGBB" color.
+     *  Applies to text views only — HTML mode keeps its own canvas. */
+    fun readBg(ctx: Context): String = p(ctx).getString("readBg", "default") ?: "default"
+    fun setReadBg(ctx: Context, v: String) = p(ctx).edit().putString("readBg", v).apply()
+
+    /** Reading font: "sans" | "serif" | "mono". */
+    fun readFont(ctx: Context): String = p(ctx).getString("readFont", "sans") ?: "sans"
+    fun setReadFont(ctx: Context, v: String) = p(ctx).edit().putString("readFont", v).apply()
+
+    /** Pro/Max: "never" (tap each time) or "always" auto-load images. */
+    fun imagesAuto(ctx: Context): String = p(ctx).getString("imagesAuto", "never") ?: "never"
+    fun setImagesAuto(ctx: Context, v: String) = p(ctx).edit().putString("imagesAuto", v).apply()
+
+    /** Pro/Max: senders whose images always load. */
+    fun imagesSenders(ctx: Context): Set<String> =
+        p(ctx).getStringSet("imagesSenders", emptySet()) ?: emptySet()
+    fun addImagesSender(ctx: Context, email: String) =
+        p(ctx).edit().putStringSet(
+            "imagesSenders", imagesSenders(ctx).toMutableSet().apply { add(email.lowercase()) }
+        ).apply()
+
+    /** Pro/Max: senders whose mail opens in full HTML view. */
+    fun htmlSenders(ctx: Context): Set<String> =
+        p(ctx).getStringSet("htmlSenders", emptySet()) ?: emptySet()
+    fun addHtmlSender(ctx: Context, email: String) =
+        p(ctx).edit().putStringSet(
+            "htmlSenders", htmlSenders(ctx).toMutableSet().apply { add(email.lowercase()) }
+        ).apply()
+
+    fun clearSenderRules(ctx: Context) =
+        p(ctx).edit().remove("imagesSenders").remove("htmlSenders").apply()
+
+    /** Delete the downloaded update APK on next app start (default on). */
+    fun deleteUpdateApk(ctx: Context): Boolean = p(ctx).getBoolean("deleteUpdateApk", true)
+    fun setDeleteUpdateApk(ctx: Context, v: Boolean) =
+        p(ctx).edit().putBoolean("deleteUpdateApk", v).apply()
+
     /** Pro default message view: "text" | "textimg" | "html". */
     fun viewMode(ctx: Context): String = p(ctx).getString("viewMode", "textimg") ?: "textimg"
     fun setViewMode(ctx: Context, v: String) = p(ctx).edit().putString("viewMode", v).apply()

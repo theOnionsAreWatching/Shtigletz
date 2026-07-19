@@ -119,11 +119,34 @@ class SafeWebView @JvmOverloads constructor(
         (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES
 
+    /** (bg, fg, link) for text rendering — the user's chosen reading
+     *  background, or the theme default. Text color follows luminance. */
+    private fun textColors(): Triple<String, String, String> {
+        val choice = Settings.readBg(context)
+        if (choice == "default") {
+            return if (isNight()) Triple("#121212", "#E4E4E4", "#8AB8FF")
+            else Triple("#FFFFFF", "#1A1A1A", "#1A66CC")
+        }
+        val c = runCatching { Color.parseColor(choice) }.getOrDefault(Color.WHITE)
+        val lum = (0.299 * Color.red(c) + 0.587 * Color.green(c) + 0.114 * Color.blue(c)) / 255.0
+        return if (lum < 0.5) Triple(choice, "#E4E4E4", "#8AB8FF")
+        else Triple(choice, "#1A1A1A", "#1A66CC")
+    }
+
+    private fun fontFamily(): String = when (Settings.readFont(context)) {
+        "serif" -> "serif"
+        "mono" -> "monospace"
+        else -> "sans-serif"
+    }
+
+    private fun textBgColor(): Int =
+        runCatching { Color.parseColor(textColors().first) }.getOrDefault(Color.WHITE)
+
     /** Neutral placeholder (e.g. "Loading…"). */
     fun showPlaceholder(text: String) {
         lockNetwork()
         settings.textZoom = (Settings.textScale(context) * 100).toInt()
-        setBackgroundColor(if (isNight()) Color.parseColor("#121212") else Color.WHITE)
+        setBackgroundColor(textBgColor())
         val doc = "<html><head>${headMeta(false)}<style>${baseCss()}</style></head>" +
                 "<body><i>${escape(text)}</i></body></html>"
         loadDataWithBaseURL(null, doc, "text/html", "utf-8", null)
@@ -179,7 +202,7 @@ class SafeWebView @JvmOverloads constructor(
                 buildHtmlDoc(html, cidImages)
             }
             else -> {
-                setBackgroundColor(if (isNight()) Color.parseColor("#121212") else Color.WHITE)
+                setBackgroundColor(textBgColor())
                 buildTextDoc(
                     plain, html, showLinks, effMode == RenderMode.TEXT_IMG,
                     imageSrcs, loadedImages, allowNetImg = netTextImg
@@ -204,12 +227,10 @@ class SafeWebView @JvmOverloads constructor(
                 "<meta name=\"color-scheme\" content=\"light\">"
 
     private fun baseCss(): String {
-        val night = isNight()
-        val bg = if (night) "#121212" else "#FFFFFF"
-        val fg = if (night) "#E4E4E4" else "#1A1A1A"
-        val link = if (night) "#8AB8FF" else "#1A66CC"
-        return "body{background:$bg;color:$fg;font-family:sans-serif;font-size:16px;margin:8px;}" +
-                "pre{white-space:pre-wrap;word-wrap:break-word;font-family:sans-serif;margin:0;}" +
+        val (bg, fg, link) = textColors()
+        val font = fontFamily()
+        return "body{background:$bg;color:$fg;font-family:$font;font-size:16px;margin:8px;}" +
+                "pre{white-space:pre-wrap;word-wrap:break-word;font-family:$font;margin:0;}" +
                 "a{color:$link;text-decoration:underline;}" +
                 "img{max-width:100%;height:auto;}"
     }

@@ -35,6 +35,24 @@
         <TextView
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:paddingTop="12dp"
+            android:text="@string/settings_read_bg" android:textStyle="bold" />
+        <Spinner android:id="@+id/readBgSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:text="@string/settings_read_font" android:textStyle="bold" />
+        <Spinner android:id="@+id/readFontSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp"
             android:text="@string/settings_sort" android:textStyle="bold" />
         <Spinner android:id="@+id/sortSpinner"
             android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -49,6 +67,19 @@
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:focusable="true" android:background="@drawable/focus_bg"
             android:minHeight="48dp" android:visibility="gone" />
+
+        <TextView android:id="@+id/imagesAutoLabel"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="12dp" android:visibility="gone"
+            android:text="@string/settings_images_auto" android:textStyle="bold" />
+        <Spinner android:id="@+id/imagesAutoSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" android:visibility="gone" />
+        <Button android:id="@+id/resetSendersButton" style="@style/DMail.Button"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:visibility="gone"
+            android:text="@string/settings_reset_senders" />
 
         <TextView
             android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -139,6 +170,22 @@
             android:text="@string/about_license"
             android:textSize="11sp" android:alpha="0.6"
             android:paddingTop="4dp" android:paddingBottom="8dp" />
+
+        <TextView android:id="@+id/versionText"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="12sp" android:alpha="0.8" />
+        <Button android:id="@+id/updateButton" style="@style/DMail.Button"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/settings_check_updates" />
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:text="@string/settings_delete_update" android:textStyle="bold" />
+        <Spinner android:id="@+id/deleteUpdateSpinner"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:focusable="true" android:background="@drawable/focus_bg"
+            android:minHeight="48dp" />
 
         <Button android:id="@+id/keyInfoButton" style="@style/DMail.Button"
             android:layout_width="match_parent" android:layout_height="wrap_content"

@@ -11,8 +11,8 @@ android {
         // minSdk 23: androidx.security-crypto (encrypted credential storage) requires API 23+.
         minSdk = 23
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.7.1"
+        versionCode = 14
+        versionName = "0.8.1"
     }
 
     // Three apps, one codebase. The dial is "how much of the message gets
