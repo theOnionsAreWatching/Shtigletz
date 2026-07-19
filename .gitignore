@@ -1,10 +1,8 @@
-*.iml
 .gradle/
-.idea/
-local.properties
 build/
-app/build/
-captures/
+local.properties
+*.keystore
+*.jks
+.idea/
+*.iml
 .DS_Store
-*.apk
-!*.keystore
